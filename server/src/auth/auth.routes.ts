@@ -33,7 +33,7 @@ function stateCookieOptions() {
   return {
     httpOnly: true,
     secure: isProd,
-    sameSite: "lax" as const,
+     sameSite: isProd ? "none" : "lax",
     path: "/",
     maxAge: 20 * 60 * 1000,
   };
