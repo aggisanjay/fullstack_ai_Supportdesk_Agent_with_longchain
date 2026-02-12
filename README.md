@@ -257,3 +257,13 @@ Web search grounding reduces hallucination risk
 
 Provider abstraction allows OpenAI or Gemini
 
+# ScreenShot
+
+# Login
+
+<img width="1180" height="577" alt="image" src="https://github.com/user-attachments/assets/28f67372-df7d-4a1a-9347-a3d9e1d6712a" />
+
+# Support Agent
+
+<img width="1240" height="723" alt="image" src="https://github.com/user-attachments/assets/1a1a3cf3-64cf-41dc-9153-fd7734ee70fb" />
+
