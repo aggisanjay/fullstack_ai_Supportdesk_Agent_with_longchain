@@ -1,0 +1,159 @@
+{
+  "tech_stack": [
+    "Node.js",
+    "TypeScript",
+    "Express",
+    "LangChain",
+    "Cookie Parser",
+    "CORS",
+    "Scalekit OAuth",
+    "Zod"
+  ],
+  "features": [
+    {
+      "name": "Health Status Check",
+      "description": "Returns server status",
+      "files": ["server/src/index.ts"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Status API",
+          "version": "1.0.0"
+        },
+        "paths": {
+          "/status": {
+            "get": {
+              "summary": "Get server status",
+              "responses": {
+                "200": {
+                  "description": "Server is running",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "ok": {
+                            "type": "boolean"
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Authentication APIs",
+      "description": "User authentication and session management",
+      "files": [
+        "server/src/auth/auth.routes.ts",
+        "server/src/auth/e2e.routes.ts",
+        "server/src/auth/auth.middleware.ts",
+        "server/src/auth/cookie.ts"
+      ],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Auth API",
+          "version": "1.0.0"
+        },
+        "paths": {
+          "/auth/e2e/login": {
+            "post": {
+              "summary": "E2E test login (development only)",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "Login successful, session cookie set",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "ok": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Not in E2E mode"
+                }
+              }
+            }
+          },
+          "/auth/me": {
+            "get": {
+              "summary": "Get current user info",
+              "security": [
+                {
+                  "cookieAuth": []
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "User info retrieved",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "user": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "401": {
+                  "description": "Unauthorized - no valid session"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

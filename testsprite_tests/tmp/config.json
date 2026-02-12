@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "backend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5000",
+  "backendAuthType": "public",
+  "executionArgs": {
+    "projectName": "fullstack_ai_with_react_langchain",
+    "projectPath": "c:\\Users\\sanga\\Downloads\\Video\\1. YOUTUBE ENGLISH\\2026\\project\\fullstack_ai_with_react_langchain",
+    "testIds": [],
+    "additionalInstruction": "Generate exactly these 4 backend API tests with no additional tests:\n\n1. Test: GET /status endpoint\n   - Method: GET\n   - URL: http://localhost:5000/status\n   - Expected: Status code 200\n   - Expected Response: JSON contains { \"ok\": true }\n\n2. Test: GET /auth/me without cookie\n   - Method: GET\n   - URL: http://localhost:5000/auth/me\n   - No cookies sent\n   - Expected: Status code 401\n\n3. Test: POST /auth/e2e/login\n   - Method: POST\n   - URL: http://localhost:5000/auth/e2e/login\n   - Body: { \"id\": \"e2e_user_1\", \"email\": \"e2e@test.local\", \"name\": \"E2E User\" }\n   - Content-Type: application/json\n   - Expected: Status code 200\n   - Expected Response: JSON { \"ok\": true }\n   - Expected: Response sets an httpOnly session cookie\n\n4. Test: GET /auth/me with session cookie from test 3\n   - Method: GET\n   - URL: http://localhost:5000/auth/me\n   - Use the session cookie set from the previous e2e/login test\n   - Expected: Status code 200\n   - Expected Response: JSON contains user.id and user.email",
+    "envs": {
+      "API_KEY": "sk-user-rpyN6c_H4DH5LS8dFEBp47LCcpqn02MeTvxyFbsdswR1lVp4AgnYupXhH4g-gMoZVw3ITHWUO25-1y6_pmt6qbW1FKMmHiZuTqkjVeBAYrh16TGpYOCHRRSVHwfCA153_XI"
+    }
+  },
+  "serverPort": 13254,
+  "proxy": "http://e3f2194c-69f2-4a7a-a3ae-2fcb1a332356:BYgbttsXthJVeUiN1uPvyxfW3Tef772n@tun.testsprite.com:8080"
+}

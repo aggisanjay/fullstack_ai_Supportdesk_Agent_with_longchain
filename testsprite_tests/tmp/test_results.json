@@ -1,0 +1,72 @@
+[
+  {
+    "projectId": "960b325c-f241-4d77-842b-4373c3f9deb5",
+    "testId": "7930f8d4-a68c-4156-b52c-3ecbdd27b514",
+    "userId": "c40824d8-3051-70ce-2e9c-f0b4a021ceb5",
+    "title": "TC001-get server status returns ok true",
+    "description": "Test the GET /status endpoint to ensure it returns a 200 status code with a JSON body containing { ok: true } indicating the server is running.",
+    "code": "import requests\n\nBASE_URL = \"http://localhost:5000\"\nTIMEOUT = 30\n\ndef test_get_status_returns_ok_true():\n    url = f\"{BASE_URL}/status\"\n    try:\n        response = requests.get(url, timeout=TIMEOUT)\n        response.raise_for_status()\n        assert response.status_code == 200, f\"Expected status code 200, got {response.status_code}\"\n        json_data = response.json()\n        assert \"ok\" in json_data, \"Response JSON does not contain 'ok'\"\n        assert json_data[\"ok\"] is True, f\"Expected ok to be True, got {json_data['ok']}\"\n    except requests.RequestException as e:\n        assert False, f\"Request to {url} failed: {e}\"\n\ntest_get_status_returns_ok_true()",
+    "testStatus": "PASSED",
+    "testError": "",
+    "testType": "BACKEND",
+    "createFrom": "mcp",
+    "created": "2026-02-07T19:44:05.753Z",
+    "modified": "2026-02-07T19:44:19.173Z"
+  },
+  {
+    "projectId": "960b325c-f241-4d77-842b-4373c3f9deb5",
+    "testId": "d018b320-e4fe-4193-8b2e-a0236375bde4",
+    "userId": "c40824d8-3051-70ce-2e9c-f0b4a021ceb5",
+    "title": "TC002-unauthenticated access to get auth me returns 401",
+    "description": "Test the GET /auth/me endpoint without any session cookie to verify it returns a 401 Unauthorized response indicating no valid session.",
+    "code": "import requests\n\nBASE_URL = \"http://localhost:5000\"\nTIMEOUT = 30\n\ndef test_get_auth_me_unauthenticated_returns_401():\n    url = f\"{BASE_URL}/auth/me\"\n    try:\n        response = requests.get(url, timeout=TIMEOUT)\n    except requests.RequestException as e:\n        assert False, f\"Request failed: {e}\"\n    assert response.status_code == 401, f\"Expected status code 401, got {response.status_code}\"\n\ntest_get_auth_me_unauthenticated_returns_401()",
+    "testStatus": "PASSED",
+    "testError": "",
+    "testType": "BACKEND",
+    "createFrom": "mcp",
+    "created": "2026-02-07T19:44:05.758Z",
+    "modified": "2026-02-07T19:44:23.958Z"
+  },
+  {
+    "projectId": "960b325c-f241-4d77-842b-4373c3f9deb5",
+    "testId": "eb438463-09bd-4dbf-828e-452d7e81cf5b",
+    "userId": "c40824d8-3051-70ce-2e9c-f0b4a021ceb5",
+    "title": "TC003-post auth e2e login sets session cookie and returns 200",
+    "description": "Test the POST /auth/e2e/login endpoint with valid user details to ensure it returns a 200 status code, sets an httpOnly session cookie, and responds with { ok: true }.",
+    "code": "import requests\n\nBASE_URL = \"http://localhost:5000\"\n\ndef test_post_auth_e2e_login_sets_session_cookie_and_returns_200():\n    url = f\"{BASE_URL}/auth/e2e/login\"\n    payload = {\n        \"id\": \"e2e_user_1\",\n        \"email\": \"e2e@test.local\",\n        \"name\": \"E2E User\"\n    }\n    headers = {\n        \"Content-Type\": \"application/json\"\n    }\n\n    try:\n        response = requests.post(url, json=payload, headers=headers, timeout=30)\n        assert response.status_code == 200, f\"Expected status 200, got {response.status_code}\"\n\n        json_response = response.json()\n        assert json_response == {\"ok\": True}, f\"Expected response {{'ok': True}}, got {json_response}\"\n\n        # Check for httpOnly session cookie\n        cookies = response.cookies\n        assert cookies, \"Expected to receive cookies but none were set.\"\n\n        http_only_cookie_found = False\n        # requests.Response.cookies only has cookie names and values, httpOnly flag is not directly accessible,\n        # so we check cookies from headers manually for httpOnly flag\n        set_cookie_headers = response.headers.getlist(\"Set-Cookie\") if hasattr(response.headers, 'getlist') else response.headers.get(\"Set-Cookie\")\n        if set_cookie_headers:\n            # If multiple cookies, set_cookie_headers may be a list or a string\n            if isinstance(set_cookie_headers, str):\n                set_cookie_headers = [set_cookie_headers]\n            for cookie_header in set_cookie_headers:\n                if 'HttpOnly' in cookie_header:\n                    http_only_cookie_found = True\n                    break\n        # fallback: if getlist unavailable and only single header\n        if not http_only_cookie_found and isinstance(set_cookie_headers, str):\n            http_only_cookie_found = 'HttpOnly' in set_cookie_headers\n\n        assert http_only_cookie_found, \"Expected httpOnly session cookie to be set in the response.\"\n\n    except requests.RequestException as e:\n        assert False, f\"Request failed: {e}\"\n\ntest_post_auth_e2e_login_sets_session_cookie_and_returns_200()",
+    "testStatus": "PASSED",
+    "testError": "",
+    "testType": "BACKEND",
+    "createFrom": "mcp",
+    "created": "2026-02-07T19:44:05.762Z",
+    "modified": "2026-02-07T19:44:21.018Z"
+  },
+  {
+    "projectId": "960b325c-f241-4d77-842b-4373c3f9deb5",
+    "testId": "0da88b05-6189-4a51-94aa-7300eaabecf7",
+    "userId": "c40824d8-3051-70ce-2e9c-f0b4a021ceb5",
+    "title": "TC004-authenticated get auth me returns user info",
+    "description": "Test the GET /auth/me endpoint with a valid session cookie to verify it returns a 200 status code and the correct user information in the response body.",
+    "code": "import requests\n\nBASE_URL = \"http://localhost:5000\"\nTIMEOUT = 30\n\ndef test_authenticated_get_auth_me_returns_user_info():\n    login_url = f\"{BASE_URL}/auth/e2e/login\"\n    auth_me_url = f\"{BASE_URL}/auth/me\"\n    login_payload = {\n        \"id\": \"e2e_user_1\",\n        \"email\": \"e2e@test.local\",\n        \"name\": \"E2E User\"\n    }\n    session = requests.Session()\n    try:\n        # POST /auth/e2e/login to get session cookie\n        login_resp = session.post(login_url, json=login_payload, timeout=TIMEOUT)\n        assert login_resp.status_code == 200, f\"Login failed with status {login_resp.status_code}\"\n        login_json = login_resp.json()\n        assert login_json.get(\"ok\") is True, f\"Login response JSON invalid: {login_json}\"\n        # Verify session cookie is set (name unknown)\n        cookies = session.cookies\n        assert len(cookies) > 0, \"No cookies found after login\"\n\n        # GET /auth/me with session cookie\n        auth_me_resp = session.get(auth_me_url, timeout=TIMEOUT)\n        assert auth_me_resp.status_code == 200, f\"Auth me failed with status {auth_me_resp.status_code}\"\n        user_info = auth_me_resp.json().get(\"user\")\n        assert user_info is not None, f\"No user info in response: {auth_me_resp.json()}\"\n        assert user_info.get(\"id\") == login_payload[\"id\"], f\"User id mismatch: expected {login_payload['id']}, got {user_info.get('id')}\"\n        assert user_info.get(\"email\") == login_payload[\"email\"], f\"User email mismatch: expected {login_payload['email']}, got {user_info.get('email')}\"\n    finally:\n        session.close()\n\n\ndef test_get_status_endpoint():\n    url = f\"{BASE_URL}/status\"\n    resp = requests.get(url, timeout=TIMEOUT)\n    assert resp.status_code == 200, f\"Status endpoint returned {resp.status_code}\"\n    json_data = resp.json()\n    assert json_data.get(\"ok\") is True, f\"Status JSON invalid: {json_data}\"\n\ndef test_get_auth_me_without_cookie():\n    url = f\"{BASE_URL}/auth/me\"\n    resp = requests.get(url, timeout=TIMEOUT)\n    assert resp.status_code == 401, f\"Expected 401 but got {resp.status_code}\"\n\ndef test_post_auth_e2e_login():\n    url = f\"{BASE_URL}/auth/e2e/login\"\n    payload = {\n        \"id\": \"e2e_user_1\",\n        \"email\": \"e2e@test.local\",\n        \"name\": \"E2E User\"\n    }\n    session = requests.Session()\n    try:\n        resp = session.post(url, json=payload, timeout=TIMEOUT)\n        assert resp.status_code == 200, f\"Login POST returned {resp.status_code}\"\n        json_resp = resp.json()\n        assert json_resp.get(\"ok\") is True, f\"Login response JSON invalid: {json_resp}\"\n        cookies = session.cookies\n        assert len(cookies) > 0, \"No cookies set in login response\"\n    finally:\n        session.close()\n\n# Run the tests in order\ntest_get_status_endpoint()\ntest_get_auth_me_without_cookie()\ntest_post_auth_e2e_login()\ntest_authenticated_get_auth_me_returns_user_info()\n",
+    "testStatus": "PASSED",
+    "testError": "",
+    "testType": "BACKEND",
+    "createFrom": "mcp",
+    "created": "2026-02-07T19:44:05.766Z",
+    "modified": "2026-02-07T19:44:52.742Z"
+  },
+  {
+    "projectId": "960b325c-f241-4d77-842b-4373c3f9deb5",
+    "testId": "a10d7f54-5409-4460-a76d-84cc6593acde",
+    "userId": "c40824d8-3051-70ce-2e9c-f0b4a021ceb5",
+    "title": "TC005-unauthenticated access to protected post api support run returns 401",
+    "description": "Test the POST /api/support/run protected endpoint without authentication to ensure it returns a 401 Unauthorized response.",
+    "code": "import requests\n\nBASE_URL = \"http://localhost:5000\"\n\ndef test_post_api_support_run_unauthenticated_returns_401():\n    url = f\"{BASE_URL}/api/support/run\"\n    try:\n        response = requests.post(url, timeout=30)\n    except requests.RequestException as e:\n        assert False, f\"Request failed: {e}\"\n    assert response.status_code == 401, f\"Expected status code 401 but got {response.status_code}\"\n\ntest_post_api_support_run_unauthenticated_returns_401()",
+    "testStatus": "FAILED",
+    "testError": "Traceback (most recent call last):\n  File \"/var/task/handler.py\", line 258, in run_with_retry\n    exec(code, exec_env)\n  File \"<string>\", line 13, in <module>\n  File \"<string>\", line 11, in test_post_api_support_run_unauthenticated_returns_401\nAssertionError: Expected status code 401 but got 404\n",
+    "testType": "BACKEND",
+    "createFrom": "mcp",
+    "created": "2026-02-07T19:44:05.771Z",
+    "modified": "2026-02-07T19:44:30.635Z"
+  }
+]
