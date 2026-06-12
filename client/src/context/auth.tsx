@@ -67,7 +67,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/login", { replace: true, state: { from: location.pathname } });
+      navigate("/", { replace: true, state: { from: location.pathname } });
     }
   }, [loading, navigate, user, location.pathname]);
 

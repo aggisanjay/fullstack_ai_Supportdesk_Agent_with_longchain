@@ -28,12 +28,10 @@ function getQueryString(value: unknown) {
 }
 
 function stateCookieOptions() {
-  const isProd = process.env.NODE_ENV === "production";
-
   return {
     httpOnly: true,
-    secure: isProd,
-     sameSite: isProd ? "none" : "lax",
+    secure: true,
+    sameSite: "none" as const,
     path: "/",
     maxAge: 20 * 60 * 1000,
   };
@@ -54,6 +52,7 @@ router.get("/login", (req, res) => {
 
     res.redirect(authorizationUrl);
   } catch (e) {
+    console.error("Scalekit login error:", e);
     res.status(500).json({
       success: false,
       message: "Error",
@@ -104,6 +103,7 @@ router.get("/callback", async (req, res) => {
 
     return res.redirect(`${extractEnv("FRONTEND_URL")}/support`);
   } catch (e) {
+    console.error("Scalekit callback error:", e);
     res.status(500).json({
       success: false,
       message: "Error",

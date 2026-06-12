@@ -1,15 +1,14 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import CommonLayout from "./components/common/layout";
-import Login from "./pages/login";
 import Support from "./pages/support";
+import LandingPage from "./pages/landing";
 import { AuthGate } from "./context/auth";
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route element={<CommonLayout />}>
-        <Route path="/" element={<Navigate to={"/login"} replace />} />
-        <Route path="/login" element={<Login />} />
         <Route
           path="/support"
           element={
@@ -18,7 +17,6 @@ export default function App() {
             </AuthGate>
           }
         />
-
         <Route path="*" element={<div>Not found</div>} />
       </Route>
     </Routes>

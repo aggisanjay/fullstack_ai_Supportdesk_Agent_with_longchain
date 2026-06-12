@@ -1,0 +1,560 @@
+{
+  "articles": [
+    {
+      "id": "kb_1",
+      "title": "How to retrieve a Scalekit client secret",
+      "category": "faq",
+      "content": "To retrieve your client secret in Scalekit, log in to the Scalekit Admin Dashboard, select your environment (e.g., Development or Production), navigate to 'API Settings' or 'Client Credentials', and click 'Generate Secret'. Make sure to copy it immediately, as it will only be displayed once.",
+      "createdAt": "2026-06-02T06:46:48.833Z"
+    },
+    {
+      "id": "kb_2",
+      "title": "OAuth Redirect URI Setup Guide",
+      "category": "documentation",
+      "content": "When setting up Single Sign-On (SSO) or OAuth, you must configure a Redirect URI. The redirect URI is where the authorization server sends the user after successful authentication. For local testing, use: http://localhost:5000/auth/callback. In production, ensure this is set to your HTTPS backend endpoint and matches exactly.",
+      "createdAt": "2026-06-04T06:46:48.835Z"
+    },
+    {
+      "id": "kb_3",
+      "title": "LangGraph Agent Troubleshooting Guidelines",
+      "category": "internal",
+      "content": "If the LangGraph support agent fails with status 422 (sources are empty or not allowed), check if a web search was performed via Tavily. The agent's response format schema requires that any source URL returned must be a subset of the Tavily search results. If the user explicitly asks for docs or oauth features, the web search will trigger, so ensure TAVILY_API_KEY is active.",
+      "createdAt": "2026-06-07T06:46:48.835Z"
+    },
+    {
+      "id": "kb_4",
+      "title": "Resolving Webhook Signature Failures",
+      "category": "troubleshooting",
+      "content": "Webhook verification errors usually happen when the payload is modified or parsed before hashing. Verify that: 1. You are using the raw request body buffer to compute the HMAC-SHA256 signature. 2. The signing secret matches the secret from your developer portal. 3. The signature algorithm is SHA-256.",
+      "createdAt": "2026-06-10T06:46:48.835Z"
+    }
+  ],
+  "tickets": [
+    {
+      "title": "Customer message:\n\n\"This is the third time I've co...",
+      "customerName": "AGGI SANJAY",
+      "customerEmail": "aggisanjay1234@gmail.com",
+      "status": "escalated",
+      "sentiment": "critical",
+      "confidenceScore": 0.2,
+      "sourceCount": 2,
+      "retrievalStatus": "success",
+      "messages": [
+        {
+          "id": "m1",
+          "sender": "customer",
+          "text": "Customer message:\n\n\"This is the third time I've contacted support. Your platform is unusable and my entire team is blocked.\"\n\nAnalyze sentiment, assign priority, determine escalation need, and generate a response.",
+          "createdAt": "2026-06-12T08:48:13.150Z"
+        },
+        {
+          "id": "m2",
+          "sender": "ai",
+          "text": "I am very sorry to hear about the ongoing difficulties you and your team are facing. I understand how critical it is to resolve these blockers quickly. To help me investigate this immediately, could you please provide more details regarding the specific issue or error message you are encountering? I have escalated this matter to our senior technical team for priority review.",
+          "createdAt": "2026-06-12T08:48:13.150Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Found 2 matching internal articles: 'How to retrieve a Scalekit client secret', 'OAuth Redirect URI Setup Guide'."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Web search skipped because no technical keywords were detected."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Drafted reply with sentiment 'critical' and confidence score 20%."
+        }
+      ],
+      "id": "t_bn19g8k",
+      "createdAt": "2026-06-12T08:48:13.150Z",
+      "escalation": {
+        "recommendedResponse": "Hi AGGI SANJAY, I have escalated this ticket. A support engineer is reviewing your request. Below is the preliminary automated advice:\n\nI am very sorry to hear about the ongoing difficulties you and your team are facing. I understand how critical it is to resolve these blockers quickly. To help me investigate this immediately, could you please provide more details regarding the specific issue or error message you are encountering? I have escalated this matter to our senior technical team for priority review.",
+        "suggestedActions": [
+          "Examine raw integration config for errors",
+          "Verify domain permissions for the organization",
+          "Schedule video-call support triage"
+        ]
+      }
+    },
+    {
+      "title": "Multiple users report slow dashboard loading times...",
+      "customerName": "AGGI SANJAY",
+      "customerEmail": "aggisanjay1234@gmail.com",
+      "status": "escalated",
+      "sentiment": "neutral",
+      "confidenceScore": 0.2,
+      "sourceCount": 2,
+      "retrievalStatus": "success",
+      "messages": [
+        {
+          "id": "m1",
+          "sender": "customer",
+          "text": "Multiple users report slow dashboard loading times after a product release. Analyze potential causes and prepare a customer-facing response.",
+          "createdAt": "2026-06-12T08:43:28.418Z"
+        },
+        {
+          "id": "m2",
+          "sender": "ai",
+          "text": "We apologize for the slow dashboard loading times experienced by your users after the recent product release. We're currently analyzing potential causes and would like to gather more information to better assist you. Could you please provide more details about the issue, such as any error messages or specific times when the slowness occurs?",
+          "createdAt": "2026-06-12T08:43:28.418Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Found 2 matching internal articles: 'How to retrieve a Scalekit client secret', 'OAuth Redirect URI Setup Guide'."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Web search skipped because no technical keywords were detected."
+        },
+        {
+          "agent": "Fallback Agent (Groq)",
+          "status": "completed",
+          "output": "Gemini agent execution failed. SAFELY FELL BACK TO GROQ model for ticket parsing."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Drafted reply with sentiment 'neutral' and confidence score 20%."
+        }
+      ],
+      "id": "t_k36ddjb",
+      "createdAt": "2026-06-12T08:43:28.418Z",
+      "escalation": {
+        "recommendedResponse": "Hi AGGI SANJAY, I have escalated this ticket. A support engineer is reviewing your request. Below is the preliminary automated advice:\n\nWe apologize for the slow dashboard loading times experienced by your users after the recent product release. We're currently analyzing potential causes and would like to gather more information to better assist you. Could you please provide more details about the issue, such as any error messages or specific times when the slowness occurs?",
+        "suggestedActions": [
+          "Examine raw integration config for errors",
+          "Verify domain permissions for the organization",
+          "Schedule video-call support triage"
+        ]
+      }
+    },
+    {
+      "title": "Multiple users report slow dashboard loading times...",
+      "customerName": "AGGI SANJAY",
+      "customerEmail": "aggisanjay1234@gmail.com",
+      "status": "escalated",
+      "sentiment": "neutral",
+      "confidenceScore": 0.5,
+      "sourceCount": 2,
+      "retrievalStatus": "success",
+      "messages": [
+        {
+          "id": "m1",
+          "sender": "customer",
+          "text": "Multiple users report slow dashboard loading times after a product release. Analyze potential causes and prepare a customer-facing response.",
+          "createdAt": "2026-06-12T08:36:13.925Z"
+        },
+        {
+          "id": "m2",
+          "sender": "ai",
+          "text": "We apologize for the slow dashboard loading times you're experiencing after the recent product release. Our team is actively investigating potential causes, which may include increased traffic, server load, or software issues. To better understand the issue, could you please provide more details about your environment and the exact error messages you're seeing? We'll do our best to address this issue as soon as possible.",
+          "createdAt": "2026-06-12T08:36:13.925Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Found 2 matching internal articles: 'How to retrieve a Scalekit client secret', 'OAuth Redirect URI Setup Guide'."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Web search skipped because no technical keywords were detected."
+        },
+        {
+          "agent": "Fallback Agent (Groq)",
+          "status": "completed",
+          "output": "Gemini agent execution failed. SAFELY FELL BACK TO GROQ model for ticket parsing."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Drafted reply with sentiment 'neutral' and confidence score 50%."
+        }
+      ],
+      "id": "t_0f0si6a",
+      "createdAt": "2026-06-12T08:36:13.925Z",
+      "escalation": {
+        "recommendedResponse": "Hi AGGI SANJAY, I have escalated this ticket. A support engineer is reviewing your request. Below is the preliminary automated advice:\n\nWe apologize for the slow dashboard loading times you're experiencing after the recent product release. Our team is actively investigating potential causes, which may include increased traffic, server load, or software issues. To better understand the issue, could you please provide more details about your environment and the exact error messages you're seeing? We'll do our best to address this issue as soon as possible.",
+        "suggestedActions": [
+          "Examine raw integration config for errors",
+          "Verify domain permissions for the organization",
+          "Schedule video-call support triage"
+        ]
+      }
+    },
+    {
+      "title": "Test Webhook Signature Issue",
+      "customerName": "Test Customer",
+      "customerEmail": "customer@example.com",
+      "status": "resolved",
+      "sentiment": "neutral",
+      "confidenceScore": 0.8,
+      "sourceCount": 3,
+      "retrievalStatus": "success",
+      "messages": [
+        {
+          "id": "m1",
+          "sender": "customer",
+          "text": "I am having signature verification failure when using Webhooks in Node.js",
+          "createdAt": "2026-06-12T08:29:03.320Z"
+        },
+        {
+          "sender": "customer",
+          "text": "[AGENT RESPONSE] You need to place express.json() after the Stripe webhook route.",
+          "id": "msg_j2hygsr",
+          "createdAt": "2026-06-12T08:29:27.816Z"
+        },
+        {
+          "sender": "ai",
+          "text": "Hello,\n\nThank you for reaching out. Regarding the issue with your Stripe webhook verification, it appears that the middleware configuration might be interfering with the request payload.\n\nTo resolve this, please ensure that your webhook route is defined before any global body-parsing middleware, such as `express.json()`. Stripe requires the raw request body to verify signatures, and standard JSON parsing can modify the payload, causing the verification to fail. \n\nIf you continue to experience issues after adjusting the route order, could you please provide the specific error message or status code you are receiving? This will help us investigate further.",
+          "id": "msg_so0hejp",
+          "createdAt": "2026-06-12T08:29:27.818Z"
+        },
+        {
+          "sender": "customer",
+          "text": "[AGENT RESPONSE] Hello,\n\nThank you for reaching out. Regarding the issue with your Stripe webhook verification, it appears that the middleware configuration might be interfering with the request payload.\n\nTo resolve this, please ensure that your webhook route is defined before any global body-parsing middleware, such as `express.json()`. Stripe requires the raw request body to verify signatures, and standard JSON parsing can modify the payload, causing the verification to fail. \n\nIf you continue to experience issues after adjusting the route order, could you please provide the specific error message or status code you are receiving? This will help us investigate further.",
+          "id": "msg_nsa98xu",
+          "createdAt": "2026-06-12T08:33:59.699Z"
+        },
+        {
+          "sender": "ai",
+          "text": "To resolve the Stripe webhook verification issue, ensure your webhook route is defined before any global body-parsing middleware. If issues persist, please provide the specific error message or status code.",
+          "id": "msg_7anp6d3",
+          "createdAt": "2026-06-12T08:33:59.700Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Found 2 matching internal articles: 'Resolving Webhook Signature Failures', 'LangGraph Agent Troubleshooting Guidelines'."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Executed web search. Retrieved 3 grounding URLs from Tavily."
+        },
+        {
+          "agent": "Fallback Agent (Groq)",
+          "status": "completed",
+          "output": "Gemini agent execution failed. SAFELY FELL BACK TO GROQ model for ticket parsing."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Drafted reply with sentiment 'neutral' and confidence score 80%."
+        }
+      ],
+      "id": "t_12u9nnv",
+      "createdAt": "2026-06-12T08:29:03.320Z"
+    },
+    {
+      "title": "A customer cannot log in using Google OAuth and re...",
+      "customerName": "AGGI SANJAY",
+      "customerEmail": "aggisanjay1234@gmail.com",
+      "status": "resolved",
+      "sentiment": "neutral",
+      "confidenceScore": 0.8,
+      "sourceCount": 4,
+      "retrievalStatus": "success",
+      "messages": [
+        {
+          "id": "m1",
+          "sender": "customer",
+          "text": "A customer cannot log in using Google OAuth and receives an invalid callback URL error. Generate a support response and troubleshooting steps.",
+          "createdAt": "2026-06-12T08:22:11.849Z"
+        },
+        {
+          "id": "m2",
+          "sender": "ai",
+          "text": "Hello,\n\nThank you for reaching out regarding the Google OAuth login issue. This error typically occurs when the redirect URI configured in your application does not exactly match the authorized URI in your Google Cloud Console.\n\nPlease verify that your Redirect URI is set correctly. For local testing, ensure you are using 'http://localhost:5000/auth/callback'. For production environments, the URI must be a secure HTTPS endpoint and must match your backend configuration exactly.\n\nTo help us investigate further, could you please provide the exact error message displayed in the browser or the logs? Screenshots of your OAuth configuration (with sensitive data redacted) would also be very helpful.",
+          "createdAt": "2026-06-12T08:22:11.849Z"
+        },
+        {
+          "sender": "customer",
+          "text": "[AGENT RESPONSE] Hello,\n\nThank you for reaching out regarding the Google OAuth login issue. This error typically occurs when the redirect URI configured in your application does not exactly match the authorized URI in your Google Cloud Console.\n\nPlease verify that your Redirect URI is set correctly. For local testing, ensure you are using 'http://localhost:5000/auth/callback'. For production environments, the URI must be a secure HTTPS endpoint and must match your backend configuration exactly.\n\nTo help us investigate further, could you please provide the exact error message displayed in the browser or the logs? Screenshots of your OAuth configuration (with sensitive data redacted) would also be very helpful.",
+          "id": "msg_6cobrs7",
+          "createdAt": "2026-06-12T08:33:17.363Z"
+        },
+        {
+          "sender": "ai",
+          "text": "To resolve the Google OAuth login issue, please verify that your Redirect URI is set correctly. For local testing, use 'http://localhost:5000/auth/callback'. For production, ensure it's a secure HTTPS endpoint matching your backend configuration. Please provide the exact error message and screenshots of your OAuth configuration (with sensitive data redacted) for further investigation.",
+          "id": "msg_vbpyx7v",
+          "createdAt": "2026-06-12T08:33:17.364Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Found 2 matching internal articles: 'OAuth Redirect URI Setup Guide', 'Resolving Webhook Signature Failures'."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Executed web search. Retrieved 3 grounding URLs from Tavily."
+        },
+        {
+          "agent": "Fallback Agent (Groq)",
+          "status": "completed",
+          "output": "Gemini agent execution failed. SAFELY FELL BACK TO GROQ model for ticket parsing."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Drafted reply with sentiment 'neutral' and confidence score 80%."
+        }
+      ],
+      "id": "t_uc93cfi",
+      "createdAt": "2026-06-12T08:22:11.849Z"
+    },
+    {
+      "title": "A customer cannot log in using Google OAuth and re...",
+      "customerName": "AGGI SANJAY",
+      "customerEmail": "aggisanjay1234@gmail.com",
+      "status": "resolved",
+      "sentiment": "neutral",
+      "confidenceScore": 0.9,
+      "sourceCount": 4,
+      "retrievalStatus": "success",
+      "messages": [
+        {
+          "id": "m1",
+          "sender": "customer",
+          "text": "A customer cannot log in using Google OAuth and receives an invalid callback URL error. Generate a support response and troubleshooting steps.",
+          "createdAt": "2026-06-12T08:20:27.012Z"
+        },
+        {
+          "id": "m2",
+          "sender": "ai",
+          "text": "Hello,\n\nThank you for reaching out regarding the Google OAuth login issue. An 'invalid callback URL' error usually indicates a mismatch between the Redirect URI configured in your application and the one registered in your Google Cloud Console.\n\nTo troubleshoot this, please verify that the Redirect URI matches exactly in both settings. If you are testing in a local environment, ensure you are using 'http://localhost:5000/auth/callback'. For production, the URI must use a secure HTTPS endpoint. Even a small difference, such as a trailing slash or a protocol mismatch (HTTP vs. HTTPS), can cause this error.\n\nCould you please confirm if this error is occurring in your local development environment or in production? Additionally, sharing the specific Redirect URI you have configured would help us assist you further.",
+          "createdAt": "2026-06-12T08:20:27.012Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Found 2 matching internal articles: 'OAuth Redirect URI Setup Guide', 'LangGraph Agent Troubleshooting Guidelines'."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Executed web search. Retrieved 3 grounding URLs from Tavily."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Drafted reply with sentiment 'neutral' and confidence score 90%."
+        }
+      ],
+      "id": "t_01bidrt",
+      "createdAt": "2026-06-12T08:20:27.012Z"
+    },
+    {
+      "id": "t_1",
+      "title": "OAuth Redirect URI mismatch error in Scalekit",
+      "customerName": "Alice Johnson",
+      "customerEmail": "alice@example.com",
+      "status": "resolved",
+      "sentiment": "neutral",
+      "confidenceScore": 1,
+      "sourceCount": 4,
+      "retrievalStatus": "success",
+      "createdAt": "2026-06-10T06:46:48.835Z",
+      "messages": [
+        {
+          "id": "msg_1_1",
+          "sender": "customer",
+          "text": "Hi support team, I am trying to authenticate via Scalekit OAuth but I keep getting a redirect_uri_mismatch error on the callback. Can you please check what might be wrong? We need this fixed today.",
+          "createdAt": "2026-06-10T06:46:48.835Z"
+        },
+        {
+          "id": "msg_1_2",
+          "sender": "ai",
+          "text": "Hello Alice, I see you are experiencing a redirect_uri_mismatch error. This error indicates that the callback URL sent in the request does not match the redirect URL registered in your Scalekit developer console.\n\nPlease verify that 'http://localhost:5000/auth/callback' is registered as an authorized redirect URI in your settings.",
+          "createdAt": "2026-06-10T06:46:58.835Z"
+        },
+        {
+          "sender": "customer",
+          "text": "[AGENT RESPONSE] Hello Alice, I see you are experiencing a redirect_uri_mismatch error. This error indicates that the callback URL sent in the request does not match the redirect URL registered in your Scalekit developer console.\n\nPlease verify that 'http://localhost:5000/auth/callback' is registered as an authorized redirect URI in your settings.",
+          "id": "msg_0mxkx9l",
+          "createdAt": "2026-06-12T07:37:27.737Z"
+        },
+        {
+          "sender": "ai",
+          "text": "Hello Alice,\n\nI understand you are encountering a 'redirect_uri_mismatch' error. This typically indicates that the callback URL sent in your authentication request does not exactly match the redirect URI registered in your developer settings.\n\nPlease verify that 'http://localhost:5000/auth/callback' is correctly listed as an authorized redirect URI in your developer console. If you are moving toward a production environment, please ensure this is updated to your secure HTTPS backend endpoint.\n\nCould you please confirm if these settings match on your end, or if you continue to see this error after updating them?",
+          "id": "msg_136dns0",
+          "createdAt": "2026-06-12T07:37:27.739Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Found 2 matching internal articles: 'OAuth Redirect URI Setup Guide', 'Resolving Webhook Signature Failures'."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Executed web search. Retrieved 3 grounding URLs from Tavily."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Drafted reply with sentiment 'neutral' and confidence score 100%."
+        }
+      ]
+    },
+    {
+      "id": "t_2",
+      "title": "Webhook signature mismatch on node express server",
+      "customerName": "Bob Smith",
+      "customerEmail": "bob@devops.io",
+      "status": "resolved",
+      "sentiment": "critical",
+      "confidenceScore": 0.45,
+      "sourceCount": 0,
+      "retrievalStatus": "failed",
+      "createdAt": "2026-06-11T06:46:48.835Z",
+      "messages": [
+        {
+          "id": "msg_2_1",
+          "sender": "customer",
+          "text": "I am trying to deploy webhooks but signature verification keeps failing. I have copied the signing secret exactly but the crypt hash comparison always returns false. This is blocking our launch.",
+          "createdAt": "2026-06-11T06:46:48.835Z"
+        },
+        {
+          "id": "msg_2_2",
+          "sender": "ai",
+          "text": "Hello Bob, I apologize for the inconvenience. A webhook signature failure usually occurs because your Express backend parses the body into JSON before verification, changing the raw string representation. Please verify that you are extracting the raw body buffer when checking the HMAC signature.",
+          "createdAt": "2026-06-11T06:47:03.835Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "Identified topic as webhook integration bugs."
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Searched articles but could not find precise matches."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Attempted Tavily search for 'webhook signature node express failures' but results were thin."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Formulated response. Triggered auto-escalation due to low confidence score (45%)."
+        }
+      ],
+      "escalation": {
+        "recommendedResponse": "Hi Bob, I have escalated your issue to our developer integration team. Webhook signature failures are often caused by body parser middleware stripping raw bodies. In Express, you can capture this buffer via: `bodyParser.json({ verify: (req, res, buf) => { req.rawBody = buf } })`. A team member will inspect your code configuration and reach out shortly.",
+        "suggestedActions": [
+          "Inspect if developer backend captures raw body buffer",
+          "Verify webhooks signing key matching sandbox vs production",
+          "Send webhook debugging guide to Bob's email"
+        ]
+      }
+    },
+    {
+      "id": "t_3",
+      "title": "Thanks for resolving our login problem",
+      "customerName": "Charlie Green",
+      "customerEmail": "charlie@company.com",
+      "status": "resolved",
+      "sentiment": "positive",
+      "confidenceScore": 0.95,
+      "sourceCount": 1,
+      "retrievalStatus": "success",
+      "createdAt": "2026-06-12T02:46:48.835Z",
+      "messages": [
+        {
+          "id": "msg_3_1",
+          "sender": "customer",
+          "text": "The guidance you sent regarding generating the client secret worked perfectly. We have successfully logged in via OAuth now. Thanks for the quick support!",
+          "createdAt": "2026-06-12T02:46:48.835Z"
+        },
+        {
+          "id": "msg_3_2",
+          "sender": "ai",
+          "text": "You are very welcome Charlie! I'm glad to hear your OAuth setup is working. I will mark this ticket as resolved. Let us know if you need any other assistance.",
+          "createdAt": "2026-06-12T02:46:53.835Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "Identified customer message as gratitude / confirmation of issue resolution."
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Checked DB for related articles."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Skipped search."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Closed the thread and replied politely."
+        }
+      ]
+    }
+  ]
+}

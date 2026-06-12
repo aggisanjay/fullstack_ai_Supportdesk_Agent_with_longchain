@@ -12,8 +12,8 @@ function cookieOptions() {
 
   return {
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    secure: true,
+    sameSite: "none" as const,
     path: "/",
   };
 }
