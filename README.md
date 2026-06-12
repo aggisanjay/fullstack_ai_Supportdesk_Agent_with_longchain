@@ -6,15 +6,7 @@ This project demonstrates modern AI backend design, security compliance, session
 
 ---
 
-## 📸 Application Screenshots
 
-### User Authentication / Login
-<img width="1180" height="577" alt="Login Page" src="https://github.com/user-attachments/assets/28f67372-df7d-4a1a-9347-a3d9e1d6712a" />
-
-### Support Agent Dashboard & Analytics
-<img width="1240" height="723" alt="Support Agent Dashboard" src="https://github.com/user-attachments/assets/1a1a3cf3-64cf-41dc-9153-fd7734ee70fb" />
-
----
 
 ## ✨ Features
 
