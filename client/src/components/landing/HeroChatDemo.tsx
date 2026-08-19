@@ -1,19 +1,13 @@
 import { useState, useEffect } from "react";
 import { Send } from "lucide-react";
 
-interface ChatMessage {
-  id: number;
-  sender: "aria" | "user";
-  text: string;
-}
-
 export default function HeroChatDemo() {
   // Step in the conversation loop (0 to 6)
   const [step, setStep] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
 
     if (step === 0) {
       // Aria greeting initial

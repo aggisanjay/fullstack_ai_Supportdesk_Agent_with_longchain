@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bot, X, Shield, ArrowRight, Sparkles, KeyRound, Mail, Loader2, CheckCircle2 } from "lucide-react";
+import { Bot, X, Shield, ArrowRight, Sparkles, KeyRound, Mail, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/auth";
 import { useNavigate } from "react-router-dom";
 import { apiPost } from "@/lib/api";

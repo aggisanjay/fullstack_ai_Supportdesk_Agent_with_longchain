@@ -1,4 +1,4 @@
-import { Bot, LogOut, Sparkles, Activity } from "lucide-react";
+import { Bot, LogOut } from "lucide-react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useAuth } from "@/context/auth";

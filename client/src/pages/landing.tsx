@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/auth";
-import { BACKEND_URL } from "@/lib/api";
 import { 
   Bot, 
   ArrowRight, 
@@ -17,12 +16,8 @@ import {
   Plug, 
   GraduationCap, 
   Rocket, 
-  MessageCircle, 
-  Mail, 
-  Headphones, 
   ShoppingBag, 
-  Database, 
-  Cloud
+  Database
 } from "lucide-react";
 import HeroChatDemo from "@/components/landing/HeroChatDemo";
 import InteractiveSandbox from "@/components/landing/InteractiveSandbox";
