@@ -48,6 +48,7 @@ router.get("/login", (req, res) => {
     const authorizationUrl = scalekit.getAuthorizationUrl(redirectUri, {
       scopes: ["openid", "profile", "email"],
       state,
+      prompt: "login",
     });
 
     res.redirect(authorizationUrl);
@@ -89,8 +90,6 @@ router.get("/callback", async (req, res) => {
     const authResult: AuthenticationResponse =
       await scalekit.authenticateWithCode(code, redirectUri);
 
-    console.log(authResult, code, "authResult");
-
     if (!authResult.user) {
       return res.status(500).send("user info is missing");
     }
@@ -101,7 +100,36 @@ router.get("/callback", async (req, res) => {
       name: authResult.user.name,
     });
 
-    return res.redirect(`${extractEnv("FRONTEND_URL")}/support`);
+    return res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Authentication Successful</title>
+          <style>
+            body { background: #0A0A0F; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            .card { text-align: center; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h3 style="color:#a78bfa; margin-bottom:8px;">Authentication Complete</h3>
+            <p style="color:#94a3b8; font-size:14px;">Connecting to your workspace...</p>
+          </div>
+          <script>
+            try {
+              if (window.opener) {
+                window.opener.postMessage({ type: "SCALEKIT_AUTH_SUCCESS" }, "*");
+                setTimeout(() => window.close(), 100);
+              } else {
+                window.location.href = "${extractEnv("FRONTEND_URL")}/support";
+              }
+            } catch(e) {
+              window.location.href = "${extractEnv("FRONTEND_URL")}/support";
+            }
+          </script>
+        </body>
+      </html>
+    `);
   } catch (e) {
     console.error("Scalekit callback error:", e);
     res.status(500).json({

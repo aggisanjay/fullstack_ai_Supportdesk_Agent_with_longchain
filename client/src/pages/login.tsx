@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth";
 import { BACKEND_URL } from "@/lib/api";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { Bot, Sparkles, Shield, ArrowRight } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,70 +19,131 @@ export default function Login() {
     window.location.href = `${BACKEND_URL}/auth/login`;
   }
 
-  if (loading) return <div className="text-sm">Checking session...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0F] text-slate-400 flex items-center justify-center text-sm font-mono">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-violet-500 animate-ping" />
+          <span>Verifying session...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (user) return null;
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="pointer-events-none fixed inset-0">
-        <div className="absolute -top-24 left-1/2 h-72 w-208 -translate-x-1/2 rounded-full bg-linear-to-r from-indigo-200/40 via-sky-200/35 to-emerald-200/30 blur-3xl" />
-        <div className="absolute top-48 left-10 h-56 w-56 rounded-full bg-indigo-100/60 blur-3xl" />
-        <div className="absolute bottom-16 right-10 h-56 w-56 rounded-full bg-sky-100/60 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(15,23,42,0.06)_1px,transparent_0)] bg-size-[24px_24px]" />
+    <div className="min-h-screen bg-[#0A0A0F] text-slate-100 font-sans selection:bg-violet-600 selection:text-white relative overflow-hidden flex flex-col justify-between">
+      
+      {/* Background ambient radial glows */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="glow-ambient hero-glow-indigo top-[-20%] left-[20%] w-[600px] h-[600px]" />
+        <div className="glow-ambient hero-glow-violet bottom-[-10%] right-[10%] w-[650px] h-[650px]" />
       </div>
-      <div className="relative mx-auto max-w-6xl px-4 py-12">
-        <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
-          <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs font-medium text-slate-700 shadow-sm">
-              <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-              Agentic Support Desk
+
+      {/* Top logo navbar */}
+      <header className="relative z-10 mx-auto w-full max-w-6xl px-6 py-6 flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-600 to-purple-600 text-white shadow-lg shadow-violet-600/30 transition-transform group-hover:scale-105">
+            <Bot className="h-5 w-5" />
+          </div>
+          <div className="text-base font-bold tracking-tight text-white flex items-center">
+            <span>SupportDesk</span>
+            <span className="ml-1 text-violet-400">AI</span>
+          </div>
+        </Link>
+
+        <Link
+          to="/"
+          className="text-xs font-medium text-slate-400 hover:text-slate-200 transition"
+        >
+          ← Back to Homepage
+        </Link>
+      </header>
+
+      {/* Main Login Card Section */}
+      <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-8 sm:py-12">
+        <div className="grid gap-12 lg:grid-cols-12 lg:items-center">
+          
+          {/* Left Column: Branding & Features */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-600/10 px-3.5 py-1 text-xs font-medium text-violet-300">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Autonomous Support Intelligence
             </div>
-            <h1 className="text-4xl font-semibold tracking-tight text-slate-900">
+
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white leading-tight">
               Triage tickets. Draft replies.
-              <span className="block text-slate-700">
-                Save runs for audit and reuse
+              <span className="block text-violet-400 mt-1">
+                Save runs for audit and reuse.
               </span>
             </h1>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200  bg-white/80 p-4 shadow-sm">
-                <div className="text-sm font-semibold text-slate-900">
-                  Structured Output
+
+            <p className="text-slate-400 text-sm sm:text-base max-w-lg leading-relaxed">
+              Connect your helpdesk to activate Aria — the real-time AI support agent
+              grounded in your knowledge base with sentiment tracking and instant handoff.
+            </p>
+
+            <div className="grid gap-4 sm:grid-cols-2 pt-2">
+              <div className="rounded-2xl border border-slate-800/90 bg-[#0B0F19]/90 p-5 shadow-sm space-y-1.5">
+                <div className="text-sm font-semibold text-white flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-violet-400" />
+                  <span>Structured Output</span>
                 </div>
-                <div className="mt-1 text-sm text-slate-600">
-                  Category, reply and next actions
+                <div className="text-xs text-slate-400 leading-relaxed">
+                  Categorization, confidence scores, and action plans.
                 </div>
               </div>
-              <div className="rounded-2xl border border-slate-200  bg-white/80 p-4 shadow-sm">
-                <div className="text-sm font-semibold text-slate-900">
-                  Get results as fast as possible
+
+              <div className="rounded-2xl border border-slate-800/90 bg-[#0B0F19]/90 p-5 shadow-sm space-y-1.5">
+                <div className="text-sm font-semibold text-white flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-violet-400" />
+                  <span>Verified Grounding</span>
                 </div>
-                <div className="mt-1 text-sm text-slate-600">
-                  Call any model you want
+                <div className="text-xs text-slate-400 leading-relaxed">
+                  Strict hallucination prevention and citation tracking.
                 </div>
               </div>
             </div>
           </div>
-          <div className="lg:justify-self-end">
-            <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white/90 p-6 backdrop-blur shadow-2xl">
-              <div className="flex items-start justify-between gap-4">
-                <div className="text-2xl font-semibold text-slate-900">
+
+          {/* Right Column: Sign In Card */}
+          <div className="lg:col-span-5 lg:justify-self-end w-full max-w-md">
+            <div className="w-full rounded-3xl border border-slate-800/90 bg-[#0E121E]/95 p-8 backdrop-blur-2xl shadow-2xl space-y-6">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight text-white">
                   Continue to Agent
-                </div>
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  Access your ticket queues, knowledge base, and analytics.
+                </p>
               </div>
-              <div className="mt-6 space-y-3">
+
+              <div className="space-y-4 pt-2">
                 <Button
                   data-testid="login-btn"
-                  className="w-full cursor-pointer"
+                  className="w-full bg-violet-600 hover:bg-violet-500 text-white font-medium py-3 rounded-xl shadow-lg shadow-violet-600/30 transition-all hover:scale-[1.01] cursor-pointer flex items-center justify-center gap-2"
                   onClick={onLogin}
                 >
-                  Login
+                  <span>Login with SSO / Credentials</span>
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
+              </div>
+
+              <div className="pt-2 text-center text-[11px] text-slate-500">
+                Protected by enterprise encryption and Scalekit auth.
               </div>
             </div>
           </div>
+
         </div>
       </div>
+
+      {/* Bottom Footer bar */}
+      <footer className="relative z-10 mx-auto w-full max-w-6xl px-6 py-6 text-center text-xs font-mono text-slate-600">
+        © 2026 SUPPORTDESK AI, INC. ALL RIGHTS RESERVED.
+      </footer>
+
     </div>
   );
 }

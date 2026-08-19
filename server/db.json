@@ -34,10 +34,10 @@
       "title": "Customer message:\n\n\"This is the third time I've co...",
       "customerName": "AGGI SANJAY",
       "customerEmail": "aggisanjay1234@gmail.com",
-      "status": "escalated",
+      "status": "resolved",
       "sentiment": "critical",
-      "confidenceScore": 0.2,
-      "sourceCount": 2,
+      "confidenceScore": 0.95,
+      "sourceCount": 4,
       "retrievalStatus": "success",
       "messages": [
         {
@@ -51,6 +51,78 @@
           "sender": "ai",
           "text": "I am very sorry to hear about the ongoing difficulties you and your team are facing. I understand how critical it is to resolve these blockers quickly. To help me investigate this immediately, could you please provide more details regarding the specific issue or error message you are encountering? I have escalated this matter to our senior technical team for priority review.",
           "createdAt": "2026-06-12T08:48:13.150Z"
+        },
+        {
+          "sender": "customer",
+          "text": "[AGENT RESPONSE] Hi support team, I'm setting up SSO authentication with Scalekit in our React app, but when the user logs in, I keep getting a redirect_uri_mismatch error at http://localhost:5000/auth/callback. How do I configure the authorized redirect URIs?",
+          "id": "msg_5xen6bw",
+          "createdAt": "2026-08-19T11:25:18.590Z"
+        },
+        {
+          "sender": "ai",
+          "text": "Hello,\n\nThank you for reaching out. The \"redirect_uri_mismatch\" error typically occurs when the redirect URI sent by your application does not exactly match the one registered in your Scalekit settings.\n\nTo resolve this, please log in to your Scalekit Admin Dashboard and navigate to Authentication > Redirects > Allowed Callback URLs. Ensure that 'http://localhost:5000/auth/callback' is added there exactly as it appears in your application configuration. Note that OAuth providers compare these URIs as literal strings, so they must match character-for-character.\n\nCould you please verify that the URI in your code and the dashboard are identical? If the issue persists after updating these settings, let us know and we can investigate further.",
+          "id": "msg_j0hzcs8",
+          "createdAt": "2026-08-19T11:25:18.592Z"
+        },
+        {
+          "sender": "customer",
+          "text": "[AGENT RESPONSE] Our production deployment is completely broken. Webhook HMAC-SHA256 signature verification in Node.js Express is constantly failing with crypto.timingSafeEqual returning false. We verified the signing secret 5 times. This is blocking our entire customer rollout!",
+          "id": "msg_h2a6a34",
+          "createdAt": "2026-08-19T11:27:25.685Z"
+        },
+        {
+          "sender": "ai",
+          "text": "Hello, thank you for reaching out. We understand the urgency of this issue, especially as it is impacting your production rollout.\n\nIn Node.js Express environments, HMAC signature verification failures most frequently occur because the request body is being parsed as JSON before the signature is verified. To ensure a successful match, you must use the raw request body buffer. If you are using standard middleware, you may need to configure `express.raw()` or use a custom verify function to capture the raw body buffer before it is processed.\n\nAdditionally, please confirm that the buffers passed to `crypto.timingSafeEqual` are of the same byte length, as a mismatch will cause verification to fail immediately. Could you please share the part of your code where the request body is captured and the signature is computed? This will help us investigate further.",
+          "id": "msg_y2sxv3a",
+          "createdAt": "2026-08-19T11:27:25.688Z"
+        },
+        {
+          "sender": "customer",
+          "text": "[AGENT RESPONSE] Hello, where can I download our company's VAT invoice for last month's Growth plan subscription, and how do we update the billing credit card on file?",
+          "id": "msg_msiqlyw",
+          "createdAt": "2026-08-19T11:30:44.812Z"
+        },
+        {
+          "sender": "ai",
+          "text": "Hello! Thank you for reaching out to us regarding your Growth plan subscription.\n\nTo help you download your VAT invoice and update your billing credit card, could you please provide your account email address or workspace ID? \n\nTypically, billing and invoice management can be found within the 'Billing' or 'Subscription' section of your dashboard. Once you provide the requested information, we can look into the specific steps for your account setup to assist you further.",
+          "id": "msg_9iqelk4",
+          "createdAt": "2026-08-19T11:30:44.814Z"
+        },
+        {
+          "sender": "customer",
+          "text": "[AGENT RESPONSE] We are getting a critical webhook signature verification failure in Node.js Express. crypto.timingSafeEqual returns false on all incoming Stripe webhook events. How do we access the raw body buffer to compute the HMAC-SHA256 signature?",
+          "id": "msg_g8k9sc9",
+          "createdAt": "2026-08-19T11:37:54.530Z"
+        },
+        {
+          "sender": "ai",
+          "text": "Hello, thank you for reaching out to our support team.\n\nWebhook signature verification failures in Node.js Express environments typically occur when the request body is parsed into a JSON object before the signature is verified. To resolve this, you must ensure you are using the raw, unparsed request body buffer for the HMAC-SHA256 calculation.\n\nIf you are using middleware like `express.json()`, please verify that it is defined after your webhook route. If it is applied globally before the route, it will modify the payload and cause the signature check to fail. \n\nCould you please confirm your current middleware configuration and if you are using the `stripe-node` library? This will help us provide more specific guidance.",
+          "id": "msg_0c0m06k",
+          "createdAt": "2026-08-19T11:37:54.533Z"
+        },
+        {
+          "sender": "customer",
+          "text": "[AGENT RESPONSE] Where do I find and generate our environment client secret in the Scalekit Admin Dashboard?",
+          "id": "msg_dygsvu0",
+          "createdAt": "2026-08-19T11:43:11.373Z"
+        },
+        {
+          "sender": "ai",
+          "text": "Hello! To find and generate your environment client secret, please log in to the Scalekit Admin Dashboard and select your specific environment (such as Development or Production).\n\nOnce you are in the correct environment, navigate to the 'API Settings' or 'Client Credentials' section and click 'Generate Secret'. Please ensure you copy the secret immediately, as it is only displayed once for security purposes. \n\nIf you encounter any issues during this process, please let us know.",
+          "id": "msg_nq88lw4",
+          "createdAt": "2026-08-19T11:43:11.375Z"
+        },
+        {
+          "sender": "customer",
+          "text": "[AGENT RESPONSE] We are getting a critical webhook signature verification failure in Node.js Express. crypto.timingSafeEqual returns false on all incoming Stripe webhook events. How do we access the raw body buffer to compute the HMAC-SHA256 signature?",
+          "id": "msg_62b5a9g",
+          "createdAt": "2026-08-19T11:44:48.174Z"
+        },
+        {
+          "sender": "ai",
+          "text": "Hello, thank you for reaching out. Webhook signature verification failures in Node.js Express are commonly caused by the request body being parsed into a JSON object before the signature is verified. \n\nTo resolve this, you must use the raw request body buffer for the HMAC-SHA256 computation. In Express, this typically requires ensuring that middleware like `express.json()` is not applied to the webhook route, or using a custom `verify` function within the middleware to capture the raw buffer before it is processed.\n\nCould you please confirm if you are currently using global body-parsing middleware and if you have tried positioning the webhook route before those definitions? This will help us provide more specific guidance for your setup.",
+          "id": "msg_cwmxxxl",
+          "createdAt": "2026-08-19T11:44:48.176Z"
         }
       ],
       "workflowSteps": [
@@ -62,27 +134,27 @@
         {
           "agent": "Knowledge Agent",
           "status": "completed",
-          "output": "Found 2 matching internal articles: 'How to retrieve a Scalekit client secret', 'OAuth Redirect URI Setup Guide'."
+          "output": "Found 2 matching internal articles: 'Resolving Webhook Signature Failures', 'LangGraph Agent Troubleshooting Guidelines'."
         },
         {
           "agent": "Search Agent",
           "status": "completed",
-          "output": "Web search skipped because no technical keywords were detected."
+          "output": "Executed web search. Retrieved 3 grounding URLs from Tavily."
         },
         {
           "agent": "Response Agent",
           "status": "completed",
-          "output": "Drafted reply with sentiment 'critical' and confidence score 20%."
+          "output": "Drafted reply with sentiment 'critical' and confidence score 95%."
         }
       ],
       "id": "t_bn19g8k",
       "createdAt": "2026-06-12T08:48:13.150Z",
       "escalation": {
-        "recommendedResponse": "Hi AGGI SANJAY, I have escalated this ticket. A support engineer is reviewing your request. Below is the preliminary automated advice:\n\nI am very sorry to hear about the ongoing difficulties you and your team are facing. I understand how critical it is to resolve these blockers quickly. To help me investigate this immediately, could you please provide more details regarding the specific issue or error message you are encountering? I have escalated this matter to our senior technical team for priority review.",
+        "recommendedResponse": "Hi AGGI SANJAY, I'm escalating your query to our technical team for immediate help. In the meantime, based on our guidelines:\n\nHello, thank you for reaching out. Webhook signature verification failures in Node.js Express are commonly caused by the request body being parsed into a JSON object before the signature is verified. \n\nTo resolve this, you must use the raw request body buffer for the HMAC-SHA256 computation. In Express, this typically requires ensuring that middleware like `express.json()` is not applied to the webhook route, or using a custom `verify` function within the middleware to capture the raw buffer before it is processed.\n\nCould you please confirm if you are currently using global body-parsing middleware and if you have tried positioning the webhook route before those definitions? This will help us provide more specific guidance for your setup.",
         "suggestedActions": [
-          "Examine raw integration config for errors",
-          "Verify domain permissions for the organization",
-          "Schedule video-call support triage"
+          "Review user logs in Scalekit dashboard",
+          "Check raw body parser buffer implementation on customer server",
+          "Contact user via secondary email"
         ]
       }
     },

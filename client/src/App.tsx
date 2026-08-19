@@ -2,12 +2,14 @@ import { Route, Routes } from "react-router-dom";
 import CommonLayout from "./components/common/layout";
 import Support from "./pages/support";
 import LandingPage from "./pages/landing";
+import Login from "./pages/login";
 import { AuthGate } from "./context/auth";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<Login />} />
       <Route element={<CommonLayout />}>
         <Route
           path="/support"

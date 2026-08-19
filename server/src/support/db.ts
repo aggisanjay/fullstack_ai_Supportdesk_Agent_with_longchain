@@ -34,8 +34,12 @@ export interface Ticket {
   customerEmail: string;
   status: "open" | "pending" | "resolved" | "escalated";
   sentiment: "positive" | "neutral" | "frustrated" | "critical";
+  intentCategory?: string;
+  intentSummary?: string;
   confidenceScore: number;
+  confidenceBreakdown?: string;
   sourceCount: number;
+  sources?: string[];
   retrievalStatus: "success" | "none" | "failed";
   messages: TicketMessage[];
   workflowSteps: WorkflowStep[];
@@ -89,7 +93,10 @@ const DEFAULT_TICKETS: Ticket[] = [
     customerEmail: "alice@example.com",
     status: "open",
     sentiment: "frustrated",
-    confidenceScore: 0.85,
+    intentCategory: "technical/integration",
+    intentSummary: "Customer is experiencing redirect_uri_mismatch during Scalekit OAuth callback configuration.",
+    confidenceScore: 0.88,
+    confidenceBreakdown: "1 KB article matched (OAuth Redirect URI Setup Guide, 92% match), 0 web citations, 85% model self-assessment",
     sourceCount: 1,
     retrievalStatus: "success",
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
@@ -108,10 +115,10 @@ const DEFAULT_TICKETS: Ticket[] = [
       }
     ],
     workflowSteps: [
-      { agent: "Intent Agent", status: "completed", output: "Identified ticket topic as SSO/OAuth redirect issues." },
-      { agent: "Knowledge Agent", status: "completed", output: "Retrieved article 'OAuth Redirect URI Setup Guide' from database." },
-      { agent: "Search Agent", status: "completed", output: "Skipped web search because internal knowledge match was highly relevant." },
-      { agent: "Response Agent", status: "completed", output: "Drafted reply using retrieved grounding details with 85% confidence." }
+      { agent: "Intent Agent", status: "completed", output: "[technical/integration] User needs resolution for OAuth redirect URI mismatch during SSO authentication." },
+      { agent: "Knowledge Agent", status: "completed", output: "Retrieved article 'OAuth Redirect URI Setup Guide' (92% semantic cosine match)." },
+      { agent: "Search Agent", status: "completed", output: "Skipped external web search because internal knowledge article provides exact resolution." },
+      { agent: "Response Agent", status: "completed", output: "Drafted response with 88% blended confidence (1 KB source + 85% model score)." }
     ],
   },
   {
@@ -121,7 +128,10 @@ const DEFAULT_TICKETS: Ticket[] = [
     customerEmail: "bob@devops.io",
     status: "escalated",
     sentiment: "critical",
+    intentCategory: "bug report",
+    intentSummary: "Customer is blocked by HMAC SHA-256 webhook signature verification failure on Node Express.",
     confidenceScore: 0.45,
+    confidenceBreakdown: "0 KB articles with direct match, 1 external search attempted, 40% model self-assessment",
     sourceCount: 0,
     retrievalStatus: "failed",
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
@@ -140,10 +150,10 @@ const DEFAULT_TICKETS: Ticket[] = [
       }
     ],
     workflowSteps: [
-      { agent: "Intent Agent", status: "completed", output: "Identified topic as webhook integration bugs." },
-      { agent: "Knowledge Agent", status: "completed", output: "Searched articles but could not find precise matches." },
-      { agent: "Search Agent", status: "completed", output: "Attempted Tavily search for 'webhook signature node express failures' but results were thin." },
-      { agent: "Response Agent", status: "completed", output: "Formulated response. Triggered auto-escalation due to low confidence score (45%)." }
+      { agent: "Intent Agent", status: "completed", output: "[bug report] Critical HMAC SHA-256 verification failure blocking production webhook launch." },
+      { agent: "Knowledge Agent", status: "completed", output: "Searched internal knowledge base but match score was below confidence threshold (18%)." },
+      { agent: "Search Agent", status: "completed", output: "Executed live Tavily search for 'Node express rawBody HMAC signature verification' (retrieved 2 URLs)." },
+      { agent: "Response Agent", status: "completed", output: "Formulated response. Triggered automated Tier-2 escalation due to critical customer sentiment and low grounding confidence (45%)." }
     ],
     escalation: {
       recommendedResponse: "Hi Bob, I have escalated your issue to our developer integration team. Webhook signature failures are often caused by body parser middleware stripping raw bodies. In Express, you can capture this buffer via: `bodyParser.json({ verify: (req, res, buf) => { req.rawBody = buf } })`. A team member will inspect your code configuration and reach out shortly.",
@@ -161,7 +171,10 @@ const DEFAULT_TICKETS: Ticket[] = [
     customerEmail: "charlie@company.com",
     status: "resolved",
     sentiment: "positive",
-    confidenceScore: 0.95,
+    intentCategory: "general",
+    intentSummary: "Customer confirms successful client secret generation and resolves OAuth ticket.",
+    confidenceScore: 0.96,
+    confidenceBreakdown: "1 KB article confirmed, resolution confirmed by customer, 95% model confidence",
     sourceCount: 1,
     retrievalStatus: "success",
     createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
@@ -180,10 +193,10 @@ const DEFAULT_TICKETS: Ticket[] = [
       }
     ],
     workflowSteps: [
-      { agent: "Intent Agent", status: "completed", output: "Identified customer message as gratitude / confirmation of issue resolution." },
-      { agent: "Knowledge Agent", status: "completed", output: "Checked DB for related articles." },
-      { agent: "Search Agent", status: "completed", output: "Skipped search." },
-      { agent: "Response Agent", status: "completed", output: "Closed the thread and replied politely." }
+      { agent: "Intent Agent", status: "completed", output: "[general] Customer confirmation of successful resolution and positive gratitude." },
+      { agent: "Knowledge Agent", status: "completed", output: "Matched resolution history with 'How to retrieve a Scalekit client secret'." },
+      { agent: "Search Agent", status: "completed", output: "Skipped external search for ticket resolution acknowledgment." },
+      { agent: "Response Agent", status: "completed", output: "Drafted closure message and auto-marked ticket as resolved." }
     ]
   }
 ];
@@ -312,16 +325,20 @@ export class SimpleDB {
     // Top issues count
     const topics: Record<string, number> = {};
     tickets.forEach((t) => {
-      // rough categorization based on title
-      const title = t.title.toLowerCase();
-      if (title.includes("oauth") || title.includes("redirect") || title.includes("sso")) {
-        topics["OAuth & Redirect Misconfigs"] = (topics["OAuth & Redirect Misconfigs"] || 0) + 1;
-      } else if (title.includes("signature") || title.includes("webhook")) {
-        topics["Webhook Signature Errors"] = (topics["Webhook Signature Errors"] || 0) + 1;
-      } else if (title.includes("secret") || title.includes("key")) {
-        topics["Credential & Secret Retrieval"] = (topics["Credential & Secret Retrieval"] || 0) + 1;
+      if (t.intentCategory) {
+        const catName = t.intentCategory.charAt(0).toUpperCase() + t.intentCategory.slice(1);
+        topics[catName] = (topics[catName] || 0) + 1;
       } else {
-        topics["General Integration Queries"] = (topics["General Integration Queries"] || 0) + 1;
+        const title = t.title.toLowerCase();
+        if (title.includes("oauth") || title.includes("redirect") || title.includes("sso")) {
+          topics["Technical/Integration"] = (topics["Technical/Integration"] || 0) + 1;
+        } else if (title.includes("signature") || title.includes("webhook")) {
+          topics["Bug report"] = (topics["Bug report"] || 0) + 1;
+        } else if (title.includes("secret") || title.includes("key")) {
+          topics["Account/Access"] = (topics["Account/Access"] || 0) + 1;
+        } else {
+          topics["General"] = (topics["General"] || 0) + 1;
+        }
       }
     });
 
