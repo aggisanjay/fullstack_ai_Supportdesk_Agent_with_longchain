@@ -9,7 +9,6 @@ import {
   Inbox, 
   BookOpen, 
   BarChart3, 
-  Play, 
   Send, 
   RefreshCw, 
   AlertTriangle, 
@@ -24,22 +23,15 @@ import {
   Database, 
   Cpu, 
   Clock, 
-  User, 
-  ShieldAlert, 
   Check, 
   Copy,
   Bot, 
-  Info,
   Search,
   Activity,
   LayoutDashboard,
   ChevronRight,
   RotateCcw,
-  DollarSign,
-  Coins,
-  Zap,
-  ChevronDown,
-  ChevronUp
+  Zap
 } from "lucide-react";
 
 interface KBArticle {
@@ -235,7 +227,6 @@ export default function Support() {
   const [ticketSearch, setTicketSearch] = useState<string>("");
   const [kbFilter, setKbFilter] = useState<string>("all");
   const [kbSearch, setKbSearch] = useState<string>("");
-  const [provider, setProvider] = useState<"gemini" | "groq" | "openai">("gemini");
   
   // Loading states
   const [ticketsLoading, setTicketsLoading] = useState(false);
@@ -248,8 +239,6 @@ export default function Support() {
   const [isLiveGenerating, setIsLiveGenerating] = useState(false);
   const [liveStepIndex, setLiveStepIndex] = useState(0);
   const [liveElapsedMs, setLiveElapsedMs] = useState(0);
-  const [isJourneyExpanded, setIsJourneyExpanded] = useState(true);
-  const [expandedStepId, setExpandedStepId] = useState<string | null>(null);
 
   // Modals & Forms
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -258,11 +247,6 @@ export default function Support() {
   const [newTicketProvider, setNewTicketProvider] = useState<"gemini" | "groq" | "openai">("gemini");
   const [autoRunAiOnCreate, setAutoRunAiOnCreate] = useState(true);
   const [newTicketForm, setNewTicketForm] = useState({ title: "", customerName: "", customerEmail: "", text: "" });
-
-  // Reply editor state & AI Proposal Copy
-  const [draftReply, setDraftReply] = useState("");
-  const [isManualMessage, setIsManualMessage] = useState(false);
-  const [copiedToComposer, setCopiedToComposer] = useState(false);
 
   // Article Modals
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
@@ -341,20 +325,6 @@ export default function Support() {
     setTimeout(() => setCopiedResponse(false), 2000);
   };
 
-  // Sync draft reply with AI draft reply if new message comes in
-  useEffect(() => {
-    if (activeTicket) {
-      const aiMsgs = activeTicket.messages.filter(m => m.sender === "ai");
-      if (aiMsgs.length > 0 && !isManualMessage) {
-        setDraftReply(aiMsgs[aiMsgs.length - 1].text);
-      } else if (!isManualMessage) {
-        setDraftReply("");
-      }
-    } else {
-      setDraftReply("");
-    }
-  }, [selectedTicketId, tickets, isManualMessage]);
-
   // Reset / Clear database data
   const handleResetData = async (wipeAll: boolean) => {
     setActionLoading(true);
@@ -396,7 +366,7 @@ export default function Support() {
     const lastMsgText = customerMsgs.length > 0 ? customerMsgs[customerMsgs.length - 1].text : activeTicket.title;
 
     const res = await apiPost<any>("/api/support/run", {
-      provider,
+      provider: (activeTicket.telemetry?.provider as any) || newTicketProvider,
       text: lastMsgText,
       ticketId: activeTicket.id
     });
@@ -414,39 +384,6 @@ export default function Support() {
       }
       setActionLoading(false);
     }, 450);
-  };
-
-  // Send human response to customer (appends agent message & marks resolved)
-  const handleSendResponse = async () => {
-    if (!activeTicket || !draftReply.trim()) return;
-    setActionLoading(true);
-
-    const res = await apiPost<Ticket>(`/api/support/tickets/${activeTicket.id}/messages`, {
-      sender: "agent",
-      text: draftReply.trim(),
-      resolveTicket: true
-    });
-
-    if (res.ok) {
-      setDraftReply("");
-      setIsManualMessage(false);
-      await loadTickets();
-      await loadAnalytics();
-      await loadMetrics();
-    }
-    setActionLoading(false);
-  };
-
-  // Update status directly
-  const handleStatusChange = async (newStatus: "open" | "pending" | "resolved" | "escalated") => {
-    if (!activeTicket) return;
-    const res = await apiPatch<Ticket>(`/api/support/tickets/${activeTicket.id}`, {
-      status: newStatus
-    });
-    if (res.ok) {
-      await loadTickets();
-      await loadAnalytics();
-    }
   };
 
   // Open Create/Edit Article Modal
@@ -551,17 +488,6 @@ export default function Support() {
     }, 450);
   };
 
-  // Copy / Insert AI Proposal into the Left Reply Composer
-  const handleApplyAiProposal = (text?: string) => {
-    const proposal = text || activeTicket?.messages?.filter(m => m.sender === "ai").slice(-1)[0]?.text;
-    if (proposal) {
-      setDraftReply(proposal);
-      setIsManualMessage(false);
-      setCopiedToComposer(true);
-      setTimeout(() => setCopiedToComposer(false), 2200);
-    }
-  };
-
   // Filtered tickets
   const filteredTickets = tickets.filter(t => {
     const matchesFilter = ticketFilter === "all" ? true : t.status === ticketFilter;
@@ -582,50 +508,6 @@ export default function Support() {
         art.content.toLowerCase().includes(kbSearch.toLowerCase());
     return matchesCategory && matchesSearch;
   });
-
-  // Circular confidence SVG ring dial
-  const renderConfidenceDial = (score: number) => {
-    const radius = 20;
-    const strokeWidth = 3.5;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference - (score * circumference);
-
-    return (
-      <div className="relative flex items-center justify-center h-12 w-12 shrink-0">
-        <svg className="w-full h-full transform -rotate-90">
-          <circle
-            cx="24"
-            cy="24"
-            r={radius}
-            stroke="#E7DFD5"
-            strokeWidth={strokeWidth}
-            fill="transparent"
-          />
-          <circle
-            cx="24"
-            cy="24"
-            r={radius}
-            stroke={score >= 0.8 ? "#26764F" : score >= 0.6 ? "#A66314" : "#B83C35"}
-            strokeWidth={strokeWidth}
-            fill="transparent"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            className="transition-all duration-700 ease-out"
-          />
-        </svg>
-        <span className="absolute text-[11px] font-bold text-[#1C1916] font-mono">
-          {Math.round(score * 100)}%
-        </span>
-      </div>
-    );
-  };
-
-  const agentWorkflow = [
-    { key: "Intent Agent", label: "Intent Classification", desc: "Classifies ticket topic & customer sentiment", icon: Cpu },
-    { key: "Knowledge Agent", label: "Knowledge Grounding", desc: "Cosine vector matching against verified runbooks", icon: Database },
-    { key: "Search Agent", label: "External Search", desc: "Retrieves documentation from developer sources via Tavily", icon: Globe },
-    { key: "Response Agent", label: "Reply Synthesis", desc: "Drafts response proposal with defensible confidence", icon: Bot }
-  ];
 
   return (
     <div className="h-[calc(100vh-3.5rem)] bg-[#F8F5F0] flex overflow-hidden relative font-sans text-[#1C1916]">
@@ -1100,8 +982,33 @@ export default function Support() {
                       </h3>
                     </div>
                     <Badge variant="neutral" className="text-[10px] font-mono bg-[#F0EBE3] text-[#1C1916]">
-                      {tickets.length} total
+                      {filteredTickets.length} / {tickets.length} total
                     </Badge>
+                  </div>
+
+                  {/* Search and Filter Controls */}
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-[#8A8279]" />
+                      <input
+                        type="text"
+                        value={ticketSearch}
+                        onChange={(e) => setTicketSearch(e.target.value)}
+                        placeholder="Search tickets..."
+                        className="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-[#E7DFD5] bg-white text-[#1C1916] placeholder:text-[#8A8279] focus:outline-none focus:border-[#FF6B0A]"
+                      />
+                    </div>
+                    <select
+                      value={ticketFilter}
+                      onChange={(e) => setTicketFilter(e.target.value)}
+                      className="text-xs px-2.5 py-1.5 rounded-lg border border-[#E7DFD5] bg-white text-[#1C1916] font-medium focus:outline-none focus:border-[#FF6B0A]"
+                    >
+                      <option value="all">All</option>
+                      <option value="open">Open</option>
+                      <option value="pending">Pending</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="escalated">Escalated</option>
+                    </select>
                   </div>
 
                   {ticketsLoading ? (
@@ -1110,13 +1017,15 @@ export default function Support() {
                       <Skeleton className="h-16 w-full rounded-lg" />
                       <Skeleton className="h-16 w-full rounded-lg" />
                     </div>
-                  ) : tickets.length === 0 ? (
+                  ) : filteredTickets.length === 0 ? (
                     <div className="text-center py-8 text-xs text-[#8A8279] italic">
-                      No ticket history found. Send an inbound ticket above to begin.
+                      {tickets.length === 0
+                        ? "No ticket history found. Send an inbound ticket above to begin."
+                        : "No tickets matching current filters."}
                     </div>
                   ) : (
                     <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
-                      {tickets.map((t) => {
+                      {filteredTickets.map((t) => {
                         const isSelected = activeTicket?.id === t.id;
                         return (
                           <div
@@ -1319,8 +1228,10 @@ export default function Support() {
                                     <div className="h-4 w-4 rounded-full bg-[#E7DFD5] text-[#8A8279] flex items-center justify-center text-[10px] font-bold">
                                       -
                                     </div>
-                                  ) : (
+                                  ) : isCompleted ? (
                                     <CheckCircle className="h-4 w-4 text-[#2D6A2E] shrink-0" />
+                                  ) : (
+                                    <div className="h-4 w-4 rounded-full border border-[#D0C7BC]" />
                                   )}
                                   <div>
                                     <h4 className="text-xs font-bold text-[#1C1916]">
