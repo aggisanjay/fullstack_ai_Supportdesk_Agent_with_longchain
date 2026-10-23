@@ -1,6 +1,6 @@
 import type { Provider, ResultState } from "@/lib/support.types";
 import { Button } from "../ui/button";
-import { Bot, Sparkles, ExternalLink, Send, Loader2, Database } from "lucide-react";
+import { Bot, Sparkles, ExternalLink, Send, Loader2, Database, Globe } from "lucide-react";
 
 type Props = {
   provider: Provider;
@@ -16,7 +16,7 @@ type Props = {
   onAgentRun: () => void;
 };
 
-function SupportAgentUi(props: Props) {
+export default function SupportAgentUi(props: Props) {
   const {
     result,
     provider,
@@ -28,18 +28,18 @@ function SupportAgentUi(props: Props) {
   } = props;
 
   return (
-    <div className="min-h-screen bg-[#07090E] text-slate-100 font-sans selection:bg-violet-600 selection:text-white">
+    <div className="min-h-screen bg-[#F8F5F0] text-[#1C1916] font-sans selection:bg-[#FFF0E4] selection:text-[#1C1916]">
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-8">
         
         {/* Header Strip */}
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-[#E7DFD5] pb-6">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-600/10 px-3.5 py-1 text-xs font-medium text-violet-300 shadow-sm">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Live Agent Console
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD8BF] bg-[#FFF0E4] px-3.5 py-1 text-xs font-semibold text-[#E85B00] shadow-xs">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#26764F]" />
+              Grounded Agent Console
             </div>
-            <h1 className="mt-2.5 text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 via-violet-600 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-violet-600/25">
+            <h1 className="mt-2.5 text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1C1916] flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-[#1C1916] text-[#FF6B0A] flex items-center justify-center shadow-xs">
                 <Bot className="h-5 w-5" />
               </div>
               <span>Support Desk Agent</span>
@@ -47,10 +47,10 @@ function SupportAgentUi(props: Props) {
           </div>
 
           {(result?.sources?.length ?? 0) > 0 ? (
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/90 px-4 py-1.5 text-xs text-slate-300 font-mono shadow-sm">
-              <Database className="h-3.5 w-3.5 text-violet-400" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#E7DFD5] bg-[#FFFDFA] px-4 py-1.5 text-xs text-[#1C1916] font-mono shadow-xs">
+              <Database className="h-3.5 w-3.5 text-[#FF6B0A]" />
               <span>Grounding Sources:</span>
-              <strong className="text-white">{result!.sources.length}</strong>
+              <strong className="text-[#1C1916]">{result!.sources.length}</strong>
             </div>
           ) : null}
         </div>
@@ -62,7 +62,7 @@ function SupportAgentUi(props: Props) {
           <div className="lg:col-span-5 space-y-5">
             <div className="saas-card rounded-2xl p-6 space-y-5">
               <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-[#6D665F]">
                   Model Engine
                 </label>
                 <select
@@ -71,7 +71,7 @@ function SupportAgentUi(props: Props) {
                     onProviderChange(event.target.value as Provider)
                   }
                   disabled={loading}
-                  className="custom-select w-full saas-input rounded-xl p-3 text-sm text-white cursor-pointer shadow-sm"
+                  className="custom-select w-full saas-input rounded-xl p-3 text-sm text-[#1C1916] cursor-pointer"
                 >
                   <option value="gemini">Google Gemini (Flash)</option>
                   <option value="groq">Groq (LLaMA 3.3 70B)</option>
@@ -80,7 +80,7 @@ function SupportAgentUi(props: Props) {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-[#6D665F]">
                   Client Ticket / Inquiry
                 </label>
                 <textarea
@@ -88,18 +88,18 @@ function SupportAgentUi(props: Props) {
                   disabled={loading}
                   onChange={(e) => onTicketChange(e.target.value)}
                   placeholder="Paste incoming ticket text or customer email to analyze..."
-                  className="min-h-48 w-full saas-input rounded-xl p-3.5 text-xs sm:text-sm text-white placeholder:text-slate-500 resize-y leading-relaxed shadow-inner font-normal"
+                  className="min-h-48 w-full saas-input rounded-xl p-3.5 text-xs sm:text-sm text-[#1C1916] placeholder:text-[#8A8279] resize-y leading-relaxed font-normal"
                 />
               </div>
 
               <Button
                 onClick={onAgentRun}
                 disabled={loading || !ticket.trim()}
-                className="w-full bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-violet-600/30 transition-all hover:scale-[1.01] cursor-pointer flex items-center justify-center gap-2"
+                className="w-full bg-[#FF6B0A] hover:bg-[#E85B00] text-[#1C1916] font-bold py-3 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin text-[#1C1916]" />
                     <span>Running Orchestration...</span>
                   </>
                 ) : (
@@ -115,31 +115,31 @@ function SupportAgentUi(props: Props) {
           {/* Right Column: Output & Sources */}
           <div className="lg:col-span-7 space-y-6">
             {!result ? (
-              <div className="saas-card rounded-2xl p-12 text-center text-slate-400 space-y-3">
-                <Bot className="h-10 w-10 mx-auto text-slate-600" />
-                <h3 className="text-sm font-semibold text-slate-300">No output generated yet</h3>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              <div className="saas-card rounded-2xl p-12 text-center text-[#8A8279] space-y-3">
+                <Bot className="h-10 w-10 mx-auto text-[#D5CCC0]" />
+                <h3 className="text-sm font-semibold text-[#1C1916]">No output generated yet</h3>
+                <p className="text-xs text-[#6D665F] max-w-sm mx-auto leading-relaxed">
                   Provide an inquiry ticket and click Run Agent Pipeline to synthesize a context-grounded response.
                 </p>
               </div>
             ) : (
-              <div className="space-y-5 animate-fadeIn">
+              <div className="space-y-5">
                 {/* Sources Card */}
                 {result.sources.length > 0 && (
                   <div className="saas-card rounded-2xl p-5 space-y-3">
-                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                      <Database className="h-4 w-4 text-violet-400" />
-                      <span>Referenced Knowledge Sources ({result.sources.length})</span>
+                    <div className="text-xs font-bold text-[#6D665F] uppercase tracking-wider flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-[#FF6B0A]" />
+                      <span>Referenced Sources ({result.sources.length})</span>
                     </div>
                     <ul className="space-y-2 text-xs">
                       {result.sources.map((source, i) => (
                         <li key={i} className="break-all flex items-center gap-2">
-                          <ExternalLink className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+                          <ExternalLink className="h-3.5 w-3.5 text-[#FF6B0A] shrink-0" />
                           <a
                             href={source}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-violet-400 hover:text-violet-300 hover:underline"
+                            className="text-[#FF6B0A] hover:text-[#E85B00] hover:underline"
                           >
                             {source}
                           </a>
@@ -150,12 +150,12 @@ function SupportAgentUi(props: Props) {
                 )}
 
                 {/* Reply Card */}
-                <div className="saas-card rounded-2xl border-violet-500/50 p-6 shadow-xl space-y-3">
-                  <div className="text-xs font-bold text-violet-400 uppercase tracking-wider flex items-center gap-2 border-b border-violet-500/20 pb-2">
-                    <Sparkles className="h-4 w-4 text-violet-400" />
+                <div className="saas-card rounded-2xl border-2 border-[#FF6B0A]/40 p-6 shadow-md space-y-3">
+                  <div className="text-xs font-bold text-[#E85B00] uppercase tracking-wider flex items-center gap-2 border-b border-[#E7DFD5] pb-2">
+                    <Sparkles className="h-4 w-4 text-[#FF6B0A]" />
                     <span>Synthesized Customer Reply</span>
                   </div>
-                  <div className="text-xs sm:text-sm text-slate-100 leading-relaxed whitespace-pre-wrap pt-1 font-normal">
+                  <div className="text-xs sm:text-sm text-[#1C1916] leading-relaxed whitespace-pre-wrap pt-1 font-normal">
                     {result.reply}
                   </div>
                 </div>
@@ -168,5 +168,3 @@ function SupportAgentUi(props: Props) {
     </div>
   );
 }
-
-export default SupportAgentUi;

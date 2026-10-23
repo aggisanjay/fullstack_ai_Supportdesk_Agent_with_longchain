@@ -4,6 +4,15 @@ export type TavilyResult = {
   snippet: string;
 };
 
+function isValidWebUrl(urlStr: string): boolean {
+  try {
+    const parsed = new URL(urlStr);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export async function tavilySearch(args: {
   query: string;
 }): Promise<TavilyResult[]> {
@@ -12,6 +21,9 @@ export async function tavilySearch(args: {
 
   const extractQuery = args.query.trim();
   if (!extractQuery) return [];
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout guard
 
   try {
     const result = await fetch("https://api.tavily.com/search", {
@@ -28,7 +40,10 @@ export async function tavilySearch(args: {
         include_raw_content: false,
         include_images: false,
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!result.ok) return [];
 
@@ -44,19 +59,19 @@ export async function tavilySearch(args: {
 
     return results
       .map((res) => {
-        const title = typeof res.title === "string" ? res.title : "Result";
-        const url = typeof res.url === "string" ? res.url : "";
-
+        const title = typeof res.title === "string" ? res.title.trim() : "External Reference";
+        const url = typeof res.url === "string" ? res.url.trim() : "";
         const content = typeof res.content === "string" ? res.content : "";
 
         return {
-          title,
+          title: title || "External Documentation",
           url,
           snippet: content.slice(0, 350),
         };
       })
-      .filter((filteredRes) => filteredRes.url.length > 0);
+      .filter((filteredRes) => isValidWebUrl(filteredRes.url));
   } catch (e) {
+    clearTimeout(timeoutId);
     return [];
   }
 }

@@ -14,22 +14,23 @@ router.post("/e2e/login", (req, res) => {
     if (!checkE2EMode()) {
         return res.status(404).json({ error: "Not found" });
     }
-    const email = typeof req.body?.email === "string" ? req.body.email : "e2e@test.local";
-    const name = typeof req.body?.name === "string" ? req.body.name : "E2E user";
-    const id = typeof req.body?.id === "string" ? req.body.id : "e2e_user_1";
+    const email = typeof req.body?.email === "string" && req.body.email.trim()
+        ? req.body.email.trim()
+        : "e2e@test.local";
+    const name = typeof req.body?.name === "string" && req.body.name.trim()
+        ? req.body.name.trim()
+        : "E2E Lead Support";
+    const id = typeof req.body?.id === "string" && req.body.id.trim()
+        ? req.body.id.trim()
+        : "usr_" + Math.random().toString(36).substring(2, 9);
     (0, cookie_1.setSessionCookie)(res, { id, email, name });
-    return res.json({ ok: true });
+    return res.json({ ok: true, user: { id, email, name } });
 });
 router.post("/e2e/logout", (req, res) => {
     if (!checkE2EMode()) {
         return res.status(404).json({ error: "Not found" });
     }
-    res.clearCookie(process.env.SESSION_COOKIE_NAME, {
-        httpOnly: true,
-        secure: false,
-        sameSite: "lax",
-        path: "/",
-    });
+    (0, cookie_1.clearSessionCookie)(res);
     return res.json({ ok: true });
 });
 exports.default = router;

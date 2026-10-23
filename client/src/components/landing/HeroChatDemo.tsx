@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { Send } from "lucide-react";
+import { Send, Sparkles, CheckCircle2, Globe, Cpu } from "lucide-react";
 
 export default function HeroChatDemo() {
-  // Step in the conversation loop (0 to 6)
   const [step, setStep] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -10,137 +9,138 @@ export default function HeroChatDemo() {
     let timeout: ReturnType<typeof setTimeout>;
 
     if (step === 0) {
-      // Aria greeting initial
       timeout = setTimeout(() => {
-        setStep(1); // User asks order status
-      }, 1800);
+        setStep(1);
+      }, 1500);
     } else if (step === 1) {
-      // User asked -> show typing indicator
       timeout = setTimeout(() => {
         setIsTyping(true);
         setStep(2);
-      }, 1000);
+      }, 900);
     } else if (step === 2) {
-      // Typing done -> Aria answers order status
       timeout = setTimeout(() => {
         setIsTyping(false);
         setStep(3);
-      }, 1400);
+      }, 1200);
     } else if (step === 3) {
-      // User follow-up -> switch address
       timeout = setTimeout(() => {
         setStep(4);
-      }, 2000);
+      }, 2200);
     } else if (step === 4) {
-      // User asked -> show typing indicator
       timeout = setTimeout(() => {
         setIsTyping(true);
         setStep(5);
       }, 900);
     } else if (step === 5) {
-      // Typing done -> Aria confirms updated address
       timeout = setTimeout(() => {
         setIsTyping(false);
         setStep(6);
       }, 1300);
     } else if (step === 6) {
-      // Finished conversation -> wait and reset loop
       timeout = setTimeout(() => {
         setStep(0);
-      }, 4500);
+      }, 5000);
     }
 
     return () => clearTimeout(timeout);
   }, [step]);
 
   return (
-    <div className="w-full max-w-[540px] rounded-3xl border border-slate-800/90 bg-[#0B0F19]/90 backdrop-blur-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.7)] flex flex-col h-[490px] overflow-hidden transition-all duration-300">
+    <div className="w-full max-w-[540px] rounded-2xl border border-[#E7DFD5] bg-[#FFFDFA] shadow-xl flex flex-col h-[490px] overflow-hidden">
       {/* Header bar */}
-      <div className="flex items-center justify-between border-b border-slate-800/80 px-5 py-3.5 bg-slate-950/40">
-        <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-slate-700/60" />
-          <div className="h-2.5 w-2.5 rounded-full bg-slate-700/60" />
-          <div className="h-2.5 w-2.5 rounded-full bg-slate-700/60" />
+      <div className="flex items-center justify-between border-b border-[#E7DFD5] px-5 py-3 bg-[#F8F5F0]">
+        <div className="flex items-center gap-2">
+          <div className="h-2.5 w-2.5 rounded-full bg-[#E7DFD5]" />
+          <div className="h-2.5 w-2.5 rounded-full bg-[#E7DFD5]" />
+          <div className="h-2.5 w-2.5 rounded-full bg-[#E7DFD5]" />
+          <span className="text-[11px] font-semibold text-[#6D665F] ml-2">Ticket #1042 — Preview</span>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-emerald-950/40 border border-emerald-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-400 tracking-wider">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>ARIA — ONLINE</span>
+        <div className="flex items-center gap-1.5 rounded-full bg-[#E6F4EA] border border-[#A7F3D0] px-2.5 py-0.5 text-[10px] font-semibold text-[#26764F]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#26764F] animate-pulse" />
+          <span>Copilot Live</span>
+        </div>
+      </div>
+
+      {/* Meta context pill bar */}
+      <div className="px-5 py-2.5 bg-[#FFF0E4] border-b border-[#FFD8BF] flex items-center justify-between text-[11px] text-[#1C1916]">
+        <div className="flex items-center gap-1.5">
+          <Cpu className="h-3.5 w-3.5 text-[#FF6B0A]" />
+          <span className="font-semibold">Detected Category:</span>
+          <span className="bg-[#FFFDFA] px-2 py-0.5 rounded border border-[#FFD8BF] text-[#E85B00] font-medium">technical/integration</span>
+        </div>
+        <div className="flex items-center gap-1 font-mono text-[10px] text-[#6D665F]">
+          <Sparkles className="h-3 w-3 text-[#FF6B0A]" />
+          <span>Confidence: 92%</span>
         </div>
       </div>
 
       {/* Chat conversation messages */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-3.5 text-xs sm:text-sm font-sans flex flex-col justify-start">
-        {/* Msg 1: Aria initial greeting */}
-        <div className="flex items-start gap-2.5 animate-fadeIn">
-          <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-violet-600 px-4 py-2.5 text-white shadow-md shadow-violet-900/20 leading-relaxed font-normal">
-            Hi, I'm Aria — the SupportDesk AI agent. How can I help?
+      <div className="flex-1 overflow-y-auto p-5 space-y-3.5 text-xs sm:text-sm flex flex-col justify-start">
+        {/* Msg 1: Customer initial issue */}
+        <div className="flex justify-start">
+          <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-[#F0EBE3] border border-[#E7DFD5] p-3.5 text-[#1C1916] leading-relaxed">
+            <div className="text-[10px] font-bold text-[#6D665F] mb-1 uppercase tracking-wider">Customer Inquiry</div>
+            We keep receiving a <code className="bg-[#FFFDFA] px-1 py-0.5 rounded border border-[#E7DFD5] text-[#1C1916]">redirect_uri_mismatch</code> error when trying to authenticate with OAuth. Where do we register the callback?
           </div>
         </div>
 
-        {/* Msg 2: User asking about order */}
-        {step >= 1 && (
-          <div className="flex justify-end animate-fadeIn">
-            <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-slate-800/90 border border-slate-700/40 px-4 py-2.5 text-slate-100 leading-relaxed">
-              Where is my order #8842?
+        {/* Typing indicator */}
+        {isTyping && (step === 2 || step === 5) && (
+          <div className="flex items-start gap-2.5">
+            <div className="rounded-2xl rounded-tl-sm bg-[#FFF0E4] border border-[#FFD8BF] px-4 py-3 text-[#FF6B0A] flex items-center gap-1.5 w-14">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#FF6B0A] typing-dot-1" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#FF6B0A] typing-dot-2" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#FF6B0A] typing-dot-3" />
             </div>
           </div>
         )}
 
-        {/* Typing indicator 1 */}
-        {isTyping && step === 2 && (
-          <div className="flex items-start gap-2.5 animate-fadeIn">
-            <div className="rounded-2xl rounded-tl-sm bg-violet-600/80 px-4 py-3 text-white flex items-center gap-1.5 w-14">
-              <span className="h-1.5 w-1.5 rounded-full bg-white typing-dot-1" />
-              <span className="h-1.5 w-1.5 rounded-full bg-white typing-dot-2" />
-              <span className="h-1.5 w-1.5 rounded-full bg-white typing-dot-3" />
-            </div>
-          </div>
-        )}
-
-        {/* Msg 3: Aria order info */}
+        {/* Msg 2: AI Draft Response */}
         {step >= 3 && (
-          <div className="flex items-start gap-2.5 animate-fadeIn">
-            <div className="max-w-[88%] rounded-2xl rounded-tl-sm bg-violet-600 px-4 py-2.5 text-white shadow-md shadow-violet-900/20 leading-relaxed">
-              Order #8842 shipped yesterday via DHL and arrives Thursday by 6 PM. I've just sent the tracking link to your email.
+          <div className="flex justify-end">
+            <div className="max-w-[88%] rounded-2xl rounded-tr-sm bg-[#FFFDFA] border-2 border-[#FF6B0A]/40 p-3.5 text-[#1C1916] shadow-sm leading-relaxed">
+              <div className="text-[10px] font-bold text-[#E85B00] mb-1.5 uppercase tracking-wider flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3 text-[#26764F]" />
+                <span>AI Drafted Resolution</span>
+              </div>
+              <p>
+                This error occurs when the callback URL passed in your authorization request does not match the authorized redirect URI list.
+              </p>
+              <p className="mt-2 text-xs text-[#6D665F]">
+                In your dashboard, navigate to <strong>API Settings &gt; Redirect URIs</strong> and ensure <code className="bg-[#F0EBE3] px-1 rounded text-[#1C1916]">http://localhost:5000/auth/callback</code> is registered.
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-[#E7DFD5] flex items-center gap-2 text-[10px] text-[#6D665F]">
+                <Globe className="h-3 w-3 text-[#FF6B0A]" />
+                <span>Grounding: 1 Internal Runbook + 2 Developer Docs</span>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Msg 4: User address change request */}
+        {/* Msg 3: Customer follow up */}
         {step >= 4 && (
-          <div className="flex justify-end animate-fadeIn">
-            <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-slate-800/90 border border-slate-700/40 px-4 py-2.5 text-slate-100 leading-relaxed">
-              Can I switch it to my office address?
+          <div className="flex justify-start">
+            <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-[#F0EBE3] border border-[#E7DFD5] p-3 text-[#1C1916] leading-relaxed">
+              Updated the URI and tested code exchange — confirmed working! Thank you.
             </div>
           </div>
         )}
 
-        {/* Typing indicator 2 */}
-        {isTyping && step === 5 && (
-          <div className="flex items-start gap-2.5 animate-fadeIn">
-            <div className="rounded-2xl rounded-tl-sm bg-violet-600/80 px-4 py-3 text-white flex items-center gap-1.5 w-14">
-              <span className="h-1.5 w-1.5 rounded-full bg-white typing-dot-1" />
-              <span className="h-1.5 w-1.5 rounded-full bg-white typing-dot-2" />
-              <span className="h-1.5 w-1.5 rounded-full bg-white typing-dot-3" />
-            </div>
-          </div>
-        )}
-
-        {/* Msg 5: Aria address confirmation */}
+        {/* Msg 4: AI closure draft */}
         {step >= 6 && (
-          <div className="flex items-start gap-2.5 animate-fadeIn">
-            <div className="max-w-[88%] rounded-2xl rounded-tl-sm bg-violet-600 px-4 py-2.5 text-white shadow-md shadow-violet-900/20 leading-relaxed">
-              Done — delivery updated to your office address. Anything else I can take care of?
+          <div className="flex justify-end">
+            <div className="max-w-[88%] rounded-2xl rounded-tr-sm bg-[#E6F4EA] border border-[#A7F3D0] p-3 text-[#26764F] leading-relaxed text-xs">
+              Glad to hear that fixed the issue! I'll mark this ticket resolved. Let us know if you need anything else.
             </div>
           </div>
         )}
       </div>
 
       {/* Pinned realistic input bar */}
-      <div className="p-3.5 border-t border-slate-800/80 bg-slate-950/40">
-        <div className="flex items-center justify-between rounded-xl bg-slate-900/70 border border-slate-800/70 px-4 py-2.5 text-xs text-slate-500">
-          <span>Reply to Aria...</span>
-          <div className="h-6 w-6 rounded-full bg-violet-600/60 flex items-center justify-center text-white/70">
+      <div className="p-3 border-t border-[#E7DFD5] bg-[#F8F5F0]">
+        <div className="flex items-center justify-between rounded-xl bg-[#FFFDFA] border border-[#E7DFD5] px-3.5 py-2 text-xs text-[#8A8279]">
+          <span>Approve reply or add human note...</span>
+          <div className="h-6 w-6 rounded-lg bg-[#FF6B0A] flex items-center justify-center text-[#1C1916]">
             <Send className="h-3 w-3" />
           </div>
         </div>

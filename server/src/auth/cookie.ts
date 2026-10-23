@@ -7,43 +7,46 @@ export type SessionUser = {
   name?: string;
 };
 
-function cookieOptions() {
+export function cookieOptions() {
   const isProd = process.env.NODE_ENV === "production";
 
   return {
     httpOnly: true,
-    secure: true,
-    sameSite: "none" as const,
+    secure: isProd,
+    sameSite: isProd ? ("none" as const) : ("lax" as const),
     path: "/",
   };
 }
 
 export function setSessionCookie(res: Response, user: SessionUser) {
-  const token = jwt.sign(user, process.env.SESSION_JWT_SECRET!, {
+  const secret = process.env.SESSION_JWT_SECRET || "default_dev_secret_jwt_key_32bytes!";
+  const cookieName = process.env.SESSION_COOKIE_NAME || "session";
+
+  const token = jwt.sign(user, secret, {
     algorithm: "HS256",
     expiresIn: "7d",
   });
 
-  res.cookie(process.env.SESSION_COOKIE_NAME!, token, {
+  res.cookie(cookieName, token, {
     ...cookieOptions(),
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
 
 export function clearSessionCookie(res: Response) {
-  res.clearCookie(process.env.SESSION_COOKIE_NAME!, cookieOptions());
+  const cookieName = process.env.SESSION_COOKIE_NAME || "session";
+  res.clearCookie(cookieName, cookieOptions());
 }
 
-export function readSessionCookie(req: { cookies?: Record<string, string> }) {
-  const token = req.cookies?.[process.env.SESSION_COOKIE_NAME!];
+export function readSessionCookie(req: { cookies?: Record<string, string> }): SessionUser | null {
+  const cookieName = process.env.SESSION_COOKIE_NAME || "session";
+  const token = req.cookies?.[cookieName];
 
   if (!token) return null;
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.SESSION_JWT_SECRET!,
-    ) as SessionUser;
+    const secret = process.env.SESSION_JWT_SECRET || "default_dev_secret_jwt_key_32bytes!";
+    const decoded = jwt.verify(token, secret) as SessionUser;
     return decoded;
   } catch {
     return null;

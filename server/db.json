@@ -5,522 +5,1357 @@
       "title": "How to retrieve a Scalekit client secret",
       "category": "faq",
       "content": "To retrieve your client secret in Scalekit, log in to the Scalekit Admin Dashboard, select your environment (e.g., Development or Production), navigate to 'API Settings' or 'Client Credentials', and click 'Generate Secret'. Make sure to copy it immediately, as it will only be displayed once.",
-      "createdAt": "2026-06-02T06:46:48.833Z"
+      "createdAt": "2026-10-13T09:00:19.487Z",
+      "updatedAt": "2026-10-13T09:00:19.488Z"
     },
     {
       "id": "kb_2",
       "title": "OAuth Redirect URI Setup Guide",
       "category": "documentation",
       "content": "When setting up Single Sign-On (SSO) or OAuth, you must configure a Redirect URI. The redirect URI is where the authorization server sends the user after successful authentication. For local testing, use: http://localhost:5000/auth/callback. In production, ensure this is set to your HTTPS backend endpoint and matches exactly.",
-      "createdAt": "2026-06-04T06:46:48.835Z"
+      "createdAt": "2026-10-15T09:00:19.488Z",
+      "updatedAt": "2026-10-15T09:00:19.488Z"
     },
     {
       "id": "kb_3",
       "title": "LangGraph Agent Troubleshooting Guidelines",
       "category": "internal",
       "content": "If the LangGraph support agent fails with status 422 (sources are empty or not allowed), check if a web search was performed via Tavily. The agent's response format schema requires that any source URL returned must be a subset of the Tavily search results. If the user explicitly asks for docs or oauth features, the web search will trigger, so ensure TAVILY_API_KEY is active.",
-      "createdAt": "2026-06-07T06:46:48.835Z"
+      "createdAt": "2026-10-18T09:00:19.488Z",
+      "updatedAt": "2026-10-18T09:00:19.488Z"
     },
     {
       "id": "kb_4",
       "title": "Resolving Webhook Signature Failures",
       "category": "troubleshooting",
       "content": "Webhook verification errors usually happen when the payload is modified or parsed before hashing. Verify that: 1. You are using the raw request body buffer to compute the HMAC-SHA256 signature. 2. The signing secret matches the secret from your developer portal. 3. The signature algorithm is SHA-256.",
-      "createdAt": "2026-06-10T06:46:48.835Z"
+      "createdAt": "2026-10-21T09:00:19.488Z",
+      "updatedAt": "2026-10-21T09:00:19.488Z"
     }
   ],
   "tickets": [
     {
-      "title": "Customer message:\n\n\"This is the third time I've co...",
+      "title": "All our API requests started returning 401 Unautho...",
       "customerName": "AGGI SANJAY",
       "customerEmail": "aggisanjay1234@gmail.com",
+      "status": "open",
+      "sentiment": "neutral",
+      "intentCategory": "technical/integration",
+      "intentSummary": "The customer needs to know how to generate a new API secret in the admin portal to resolve 401 Unauthorized errors after rotating credentials.",
+      "confidenceScore": 0.7,
+      "confidenceBreakdown": "2 KB articles matched (top match: 37%), 2 web sources, model confidence: 100%",
+      "sourceCount": 4,
+      "sources": [
+        "https://community.shopify.com/t/api-returns-401-unauthorized/96098",
+        "https://community.openai.com/t/persistent-401-error-on-new-api-keys-for-custom-3cx-python-bridge/1368209"
+      ],
+      "retrievalStatus": "success",
+      "messages": [
+        {
+          "id": "m1",
+          "sender": "customer",
+          "text": "All our API requests started returning 401 Unauthorized after we rotated our client credentials. Where do we generate a fresh secret in the admin portal?",
+          "createdAt": "2026-10-23T10:16:49.313Z"
+        },
+        {
+          "id": "m2",
+          "sender": "ai",
+          "text": "I understand you're encountering 401 Unauthorized errors after rotating your client credentials and need to generate a new API secret. This is a common situation when credentials are updated.\n\nTo generate a fresh client secret in your Scalekit Admin Dashboard, please follow these steps:\n1. Log in to the Scalekit Admin Dashboard.\n2. Select your environment (e.g., Development or Production).\n3. Navigate to 'API Settings' or 'Client Credentials'.\n4. Click 'Generate Secret'.\n\nIt's crucial to copy the new secret immediately, as it will only be displayed once. Implementing this new secret should resolve the 401 Unauthorized errors you're experiencing.\n\nIf the issue persists, please provide any additional error details or logs for further investigation.",
+          "createdAt": "2026-10-23T10:16:49.313Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "[technical/integration] The customer needs to know how to generate a new API secret in the admin portal to resolve 401 Unauthorized errors after rotating credentials. (935.4ms)"
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Retrieved 2 internal article(s). Top match: 'How to retrieve a Scalekit client secret' (37% match, 5.7ms)."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Executed live search for 'All our API requests started returning 401 Unauthorized after we rotated our client credentials. Whe' (3 URLs retrieved from Tavily, 4786.3ms)."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Synthesized reply with sentiment 'neutral' and blended confidence 70% in 8236.4ms."
+        }
+      ],
+      "detailedSteps": [
+        {
+          "id": "step_6a9110d0",
+          "name": "Ticket Ingestion & Sentiment Analysis",
+          "stage": "ingestion",
+          "status": "completed",
+          "agent": "Ingestion Agent",
+          "durationMs": 1.5,
+          "timestamp": "2026-10-23T10:16:49.312Z",
+          "summary": "Ingested ticket payload (153 characters). Detected raw customer sentiment: 'neutral'.",
+          "details": {
+            "characterCount": 153,
+            "sentiment": "neutral"
+          }
+        },
+        {
+          "id": "step_aa5c0368",
+          "name": "Intent Classification & Routing",
+          "stage": "intent_classification",
+          "status": "completed",
+          "agent": "Intent Agent",
+          "durationMs": 935.4,
+          "timestamp": "2026-10-23T10:16:49.312Z",
+          "summary": "Classified category as 'technical/integration'. Needs: The customer needs to know how to generate a new API secret in the admin portal to resolve 401 Unauthorized errors after rotating credentials. (Web search required).",
+          "details": {
+            "category": "technical/integration",
+            "summary": "The customer needs to know how to generate a new API secret in the admin portal to resolve 401 Unauthorized errors after rotating credentials.",
+            "requiresWebSearch": true,
+            "searchReasoning": "The issue involves API authentication protocols and specific developer portal navigation, which requires external verification of current documentation."
+          }
+        },
+        {
+          "id": "step_3448d40c",
+          "name": "Semantic Knowledge Base Matching",
+          "stage": "kb_retrieval",
+          "status": "completed",
+          "agent": "Knowledge Agent",
+          "durationMs": 5.7,
+          "timestamp": "2026-10-23T10:16:49.312Z",
+          "summary": "Retrieved 2 internal article(s). Top match: 'How to retrieve a Scalekit client secret' (37% match, 5.7ms).",
+          "details": {
+            "matchedCount": 2,
+            "topScore": 0.37,
+            "matchedArticles": [
+              {
+                "title": "How to retrieve a Scalekit client secret",
+                "category": "faq",
+                "score": 0.37
+              },
+              {
+                "title": "Resolving Webhook Signature Failures",
+                "category": "troubleshooting",
+                "score": 0.22
+              }
+            ]
+          }
+        },
+        {
+          "id": "step_80c3e590",
+          "name": "Web Search Grounding",
+          "stage": "web_search",
+          "status": "completed",
+          "agent": "Search Agent",
+          "durationMs": 4786.3,
+          "timestamp": "2026-10-23T10:16:49.312Z",
+          "summary": "Live search retrieved 3 source URL(s) from Tavily (4786.3ms).",
+          "details": {
+            "searchExecuted": true,
+            "retrievedUrls": [
+              "https://community.shopify.com/t/api-returns-401-unauthorized/96098",
+              "https://community.openai.com/t/persistent-401-error-on-new-api-keys-for-custom-3cx-python-bridge/1368209"
+            ]
+          }
+        },
+        {
+          "id": "step_3561068c",
+          "name": "Multi-Model AI Synthesis",
+          "stage": "ai_synthesis",
+          "status": "completed",
+          "agent": "Response Agent (GEMINI)",
+          "durationMs": 8236.4,
+          "timestamp": "2026-10-23T10:16:49.312Z",
+          "summary": "Synthesized response using model 'gemini-2.5-flash'. Tokens: 1082 (893 prompt + 189 completion, 8236.4ms).",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-2.5-flash",
+            "promptTokens": 893,
+            "completionTokens": 189,
+            "totalTokens": 1082,
+            "isTokenCountEstimated": true,
+            "modelMs": 8236.4
+          }
+        },
+        {
+          "id": "step_c984957e",
+          "name": "Guardrails & Operational Cost Accounting",
+          "stage": "guardrails_evaluation",
+          "status": "completed",
+          "agent": "Guardrails & Accounting",
+          "durationMs": 1.2,
+          "timestamp": "2026-10-23T10:16:49.312Z",
+          "summary": "Blended confidence: 70%. Passed confidence threshold. Cost: $0.000124 USD.",
+          "details": {
+            "blendedConfidence": 0.7,
+            "confidenceBreakdown": "2 KB articles matched (top match: 37%), 2 web sources, model confidence: 100%",
+            "estimatedCostUsd": 0.000124,
+            "formattedCost": "$0.000124 USD",
+            "escalated": false
+          }
+        }
+      ],
+      "telemetry": {
+        "requestId": "req_c537c41d74f3ba0b",
+        "timestamp": "2026-10-23T10:16:49.312Z",
+        "provider": "gemini",
+        "model": "gemini-2.5-flash",
+        "promptTokens": 893,
+        "completionTokens": 189,
+        "totalTokens": 1082,
+        "isTokenCountEstimated": true,
+        "costUsd": 0.000124,
+        "formattedCost": "$0.000124 USD",
+        "latencies": {
+          "totalMs": 13988.4,
+          "intentMs": 935.4,
+          "kbMs": 5.7,
+          "searchMs": 4786.3,
+          "modelMs": 8236.4
+        }
+      },
+      "id": "t_i9fh4c6",
+      "createdAt": "2026-10-23T10:16:49.313Z",
+      "updatedAt": "2026-10-23T10:16:49.313Z"
+    },
+    {
+      "title": "Test Inbound Webhook Bug Ticket",
+      "customerName": "Acme Corp Lead",
+      "customerEmail": "lead@acme.com",
       "status": "resolved",
-      "sentiment": "critical",
+      "sentiment": "neutral",
+      "intentCategory": "general",
+      "intentSummary": "Test Inbound Webhook Bug Ticket",
       "confidenceScore": 0.95,
-      "sourceCount": 4,
-      "retrievalStatus": "success",
+      "confidenceBreakdown": "Manually registered inbound ticket",
+      "sourceCount": 0,
+      "sources": [],
+      "retrievalStatus": "none",
       "messages": [
         {
           "id": "m1",
           "sender": "customer",
-          "text": "Customer message:\n\n\"This is the third time I've contacted support. Your platform is unusable and my entire team is blocked.\"\n\nAnalyze sentiment, assign priority, determine escalation need, and generate a response.",
-          "createdAt": "2026-06-12T08:48:13.150Z"
+          "text": "We are getting HMAC validation error on webhook endpoint.",
+          "createdAt": "2026-10-23T09:40:59.726Z"
         },
         {
-          "id": "m2",
-          "sender": "ai",
-          "text": "I am very sorry to hear about the ongoing difficulties you and your team are facing. I understand how critical it is to resolve these blockers quickly. To help me investigate this immediately, could you please provide more details regarding the specific issue or error message you are encountering? I have escalated this matter to our senior technical team for priority review.",
-          "createdAt": "2026-06-12T08:48:13.150Z"
-        },
-        {
-          "sender": "customer",
-          "text": "[AGENT RESPONSE] Hi support team, I'm setting up SSO authentication with Scalekit in our React app, but when the user logs in, I keep getting a redirect_uri_mismatch error at http://localhost:5000/auth/callback. How do I configure the authorized redirect URIs?",
-          "id": "msg_5xen6bw",
-          "createdAt": "2026-08-19T11:25:18.590Z"
-        },
-        {
-          "sender": "ai",
-          "text": "Hello,\n\nThank you for reaching out. The \"redirect_uri_mismatch\" error typically occurs when the redirect URI sent by your application does not exactly match the one registered in your Scalekit settings.\n\nTo resolve this, please log in to your Scalekit Admin Dashboard and navigate to Authentication > Redirects > Allowed Callback URLs. Ensure that 'http://localhost:5000/auth/callback' is added there exactly as it appears in your application configuration. Note that OAuth providers compare these URIs as literal strings, so they must match character-for-character.\n\nCould you please verify that the URI in your code and the dashboard are identical? If the issue persists after updating these settings, let us know and we can investigate further.",
-          "id": "msg_j0hzcs8",
-          "createdAt": "2026-08-19T11:25:18.592Z"
-        },
-        {
-          "sender": "customer",
-          "text": "[AGENT RESPONSE] Our production deployment is completely broken. Webhook HMAC-SHA256 signature verification in Node.js Express is constantly failing with crypto.timingSafeEqual returning false. We verified the signing secret 5 times. This is blocking our entire customer rollout!",
-          "id": "msg_h2a6a34",
-          "createdAt": "2026-08-19T11:27:25.685Z"
-        },
-        {
-          "sender": "ai",
-          "text": "Hello, thank you for reaching out. We understand the urgency of this issue, especially as it is impacting your production rollout.\n\nIn Node.js Express environments, HMAC signature verification failures most frequently occur because the request body is being parsed as JSON before the signature is verified. To ensure a successful match, you must use the raw request body buffer. If you are using standard middleware, you may need to configure `express.raw()` or use a custom verify function to capture the raw body buffer before it is processed.\n\nAdditionally, please confirm that the buffers passed to `crypto.timingSafeEqual` are of the same byte length, as a mismatch will cause verification to fail immediately. Could you please share the part of your code where the request body is captured and the signature is computed? This will help us investigate further.",
-          "id": "msg_y2sxv3a",
-          "createdAt": "2026-08-19T11:27:25.688Z"
-        },
-        {
-          "sender": "customer",
-          "text": "[AGENT RESPONSE] Hello, where can I download our company's VAT invoice for last month's Growth plan subscription, and how do we update the billing credit card on file?",
-          "id": "msg_msiqlyw",
-          "createdAt": "2026-08-19T11:30:44.812Z"
-        },
-        {
-          "sender": "ai",
-          "text": "Hello! Thank you for reaching out to us regarding your Growth plan subscription.\n\nTo help you download your VAT invoice and update your billing credit card, could you please provide your account email address or workspace ID? \n\nTypically, billing and invoice management can be found within the 'Billing' or 'Subscription' section of your dashboard. Once you provide the requested information, we can look into the specific steps for your account setup to assist you further.",
-          "id": "msg_9iqelk4",
-          "createdAt": "2026-08-19T11:30:44.814Z"
-        },
-        {
-          "sender": "customer",
-          "text": "[AGENT RESPONSE] We are getting a critical webhook signature verification failure in Node.js Express. crypto.timingSafeEqual returns false on all incoming Stripe webhook events. How do we access the raw body buffer to compute the HMAC-SHA256 signature?",
-          "id": "msg_g8k9sc9",
-          "createdAt": "2026-08-19T11:37:54.530Z"
-        },
-        {
-          "sender": "ai",
-          "text": "Hello, thank you for reaching out to our support team.\n\nWebhook signature verification failures in Node.js Express environments typically occur when the request body is parsed into a JSON object before the signature is verified. To resolve this, you must ensure you are using the raw, unparsed request body buffer for the HMAC-SHA256 calculation.\n\nIf you are using middleware like `express.json()`, please verify that it is defined after your webhook route. If it is applied globally before the route, it will modify the payload and cause the signature check to fail. \n\nCould you please confirm your current middleware configuration and if you are using the `stripe-node` library? This will help us provide more specific guidance.",
-          "id": "msg_0c0m06k",
-          "createdAt": "2026-08-19T11:37:54.533Z"
-        },
-        {
-          "sender": "customer",
-          "text": "[AGENT RESPONSE] Where do I find and generate our environment client secret in the Scalekit Admin Dashboard?",
-          "id": "msg_dygsvu0",
-          "createdAt": "2026-08-19T11:43:11.373Z"
-        },
-        {
-          "sender": "ai",
-          "text": "Hello! To find and generate your environment client secret, please log in to the Scalekit Admin Dashboard and select your specific environment (such as Development or Production).\n\nOnce you are in the correct environment, navigate to the 'API Settings' or 'Client Credentials' section and click 'Generate Secret'. Please ensure you copy the secret immediately, as it is only displayed once for security purposes. \n\nIf you encounter any issues during this process, please let us know.",
-          "id": "msg_nq88lw4",
-          "createdAt": "2026-08-19T11:43:11.375Z"
-        },
-        {
-          "sender": "customer",
-          "text": "[AGENT RESPONSE] We are getting a critical webhook signature verification failure in Node.js Express. crypto.timingSafeEqual returns false on all incoming Stripe webhook events. How do we access the raw body buffer to compute the HMAC-SHA256 signature?",
-          "id": "msg_62b5a9g",
-          "createdAt": "2026-08-19T11:44:48.174Z"
-        },
-        {
-          "sender": "ai",
-          "text": "Hello, thank you for reaching out. Webhook signature verification failures in Node.js Express are commonly caused by the request body being parsed into a JSON object before the signature is verified. \n\nTo resolve this, you must use the raw request body buffer for the HMAC-SHA256 computation. In Express, this typically requires ensuring that middleware like `express.json()` is not applied to the webhook route, or using a custom `verify` function within the middleware to capture the raw buffer before it is processed.\n\nCould you please confirm if you are currently using global body-parsing middleware and if you have tried positioning the webhook route before those definitions? This will help us provide more specific guidance for your setup.",
-          "id": "msg_cwmxxxl",
-          "createdAt": "2026-08-19T11:44:48.176Z"
+          "sender": "agent",
+          "text": "Hello! We have reviewed your webhook setup and recommend using bodyParser.raw().",
+          "id": "msg_s1b7s7u",
+          "createdAt": "2026-10-23T09:40:59.738Z"
         }
       ],
-      "workflowSteps": [
-        {
-          "agent": "Intent Agent",
-          "status": "completed",
-          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
-        },
-        {
-          "agent": "Knowledge Agent",
-          "status": "completed",
-          "output": "Found 2 matching internal articles: 'Resolving Webhook Signature Failures', 'LangGraph Agent Troubleshooting Guidelines'."
-        },
-        {
-          "agent": "Search Agent",
-          "status": "completed",
-          "output": "Executed web search. Retrieved 3 grounding URLs from Tavily."
-        },
-        {
-          "agent": "Response Agent",
-          "status": "completed",
-          "output": "Drafted reply with sentiment 'critical' and confidence score 95%."
-        }
-      ],
-      "id": "t_bn19g8k",
-      "createdAt": "2026-06-12T08:48:13.150Z",
-      "escalation": {
-        "recommendedResponse": "Hi AGGI SANJAY, I'm escalating your query to our technical team for immediate help. In the meantime, based on our guidelines:\n\nHello, thank you for reaching out. Webhook signature verification failures in Node.js Express are commonly caused by the request body being parsed into a JSON object before the signature is verified. \n\nTo resolve this, you must use the raw request body buffer for the HMAC-SHA256 computation. In Express, this typically requires ensuring that middleware like `express.json()` is not applied to the webhook route, or using a custom `verify` function within the middleware to capture the raw buffer before it is processed.\n\nCould you please confirm if you are currently using global body-parsing middleware and if you have tried positioning the webhook route before those definitions? This will help us provide more specific guidance for your setup.",
-        "suggestedActions": [
-          "Review user logs in Scalekit dashboard",
-          "Check raw body parser buffer implementation on customer server",
-          "Contact user via secondary email"
-        ]
-      }
+      "workflowSteps": [],
+      "id": "t_gsyf4jz",
+      "createdAt": "2026-10-23T09:40:59.726Z",
+      "updatedAt": "2026-10-23T09:40:59.741Z"
     },
     {
-      "title": "Multiple users report slow dashboard loading times...",
-      "customerName": "AGGI SANJAY",
-      "customerEmail": "aggisanjay1234@gmail.com",
+      "title": "How do I generate an API key in the developer cons...",
+      "customerName": "Support User",
+      "customerEmail": "user@example.com",
       "status": "escalated",
       "sentiment": "neutral",
-      "confidenceScore": 0.2,
-      "sourceCount": 2,
+      "intentCategory": "technical/integration",
+      "intentSummary": "The customer needs instructions on how to generate an API key within the developer console.",
+      "confidenceScore": 0.59,
+      "confidenceBreakdown": "2 KB articles matched (top match: 30%), 2 web sources, model confidence: 85%",
+      "sourceCount": 4,
+      "sources": [
+        "https://support.google.com/googleapi/answer/6158862?hl=en",
+        "https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api"
+      ],
       "retrievalStatus": "success",
       "messages": [
         {
           "id": "m1",
           "sender": "customer",
-          "text": "Multiple users report slow dashboard loading times after a product release. Analyze potential causes and prepare a customer-facing response.",
-          "createdAt": "2026-06-12T08:43:28.418Z"
+          "text": "How do I generate an API key in the developer console?",
+          "createdAt": "2026-10-23T09:40:42.473Z"
         },
         {
           "id": "m2",
           "sender": "ai",
-          "text": "We apologize for the slow dashboard loading times experienced by your users after the recent product release. We're currently analyzing potential causes and would like to gather more information to better assist you. Could you please provide more details about the issue, such as any error messages or specific times when the slowness occurs?",
-          "createdAt": "2026-06-12T08:43:28.418Z"
+          "text": "Hello,\n\nThank you for reaching out. To generate an API key in the developer console, please follow these steps:\n\n1. Log in to your developer console dashboard.\n2. Navigate to the 'API Settings' or 'Client Credentials' section.\n3. Click on 'Generate Secret' or 'Create API Key'.\n4. Copy the generated key immediately, as it will only be displayed once for security reasons.\n\nIf you are using a specific platform like Google or Apple, the exact steps may vary slightly. For example, in the Google API Console, you would go to 'APIs & services' > 'Credentials' > 'Create credentials' > 'API key'.\n\nPlease let me know if you need further assistance or if you are using a specific platform that requires different steps.\n\nBest regards,\nCustomer Support",
+          "createdAt": "2026-10-23T09:40:42.473Z"
         }
       ],
       "workflowSteps": [
         {
           "agent": "Intent Agent",
           "status": "completed",
-          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+          "output": "[technical/integration] The customer needs instructions on how to generate an API key within the developer console. (393.1ms)"
         },
         {
           "agent": "Knowledge Agent",
           "status": "completed",
-          "output": "Found 2 matching internal articles: 'How to retrieve a Scalekit client secret', 'OAuth Redirect URI Setup Guide'."
+          "output": "Retrieved 2 internal article(s). Top match: 'Resolving Webhook Signature Failures' (30% match, 1ms)."
         },
         {
           "agent": "Search Agent",
           "status": "completed",
-          "output": "Web search skipped because no technical keywords were detected."
-        },
-        {
-          "agent": "Fallback Agent (Groq)",
-          "status": "completed",
-          "output": "Gemini agent execution failed. SAFELY FELL BACK TO GROQ model for ticket parsing."
+          "output": "Executed live search for 'How do I generate an API key in the developer console' (3 URLs retrieved from Tavily, 3718.3ms)."
         },
         {
           "agent": "Response Agent",
           "status": "completed",
-          "output": "Drafted reply with sentiment 'neutral' and confidence score 20%."
+          "output": "Synthesized reply with sentiment 'neutral' and blended confidence 59% in 726.3ms."
         }
       ],
-      "id": "t_k36ddjb",
-      "createdAt": "2026-06-12T08:43:28.418Z",
+      "detailedSteps": [
+        {
+          "id": "step_c5ae0f66",
+          "name": "Ticket Ingestion & Sentiment Analysis",
+          "stage": "ingestion",
+          "status": "completed",
+          "agent": "Ingestion Agent",
+          "durationMs": 1.5,
+          "timestamp": "2026-10-23T09:40:42.473Z",
+          "summary": "Ingested ticket payload (54 characters). Detected raw customer sentiment: 'neutral'.",
+          "details": {
+            "characterCount": 54,
+            "sentiment": "neutral"
+          }
+        },
+        {
+          "id": "step_c2885924",
+          "name": "Intent Classification & Routing",
+          "stage": "intent_classification",
+          "status": "completed",
+          "agent": "Intent Agent",
+          "durationMs": 393.1,
+          "timestamp": "2026-10-23T09:40:42.473Z",
+          "summary": "Classified category as 'technical/integration'. Needs: The customer needs instructions on how to generate an API key within the developer console. (Web search required).",
+          "details": {
+            "category": "technical/integration",
+            "summary": "The customer needs instructions on how to generate an API key within the developer console.",
+            "requiresWebSearch": true,
+            "searchReasoning": "External search is required to retrieve the specific, up-to-date documentation steps for generating API keys in the developer console."
+          }
+        },
+        {
+          "id": "step_ba493df4",
+          "name": "Semantic Knowledge Base Matching",
+          "stage": "kb_retrieval",
+          "status": "completed",
+          "agent": "Knowledge Agent",
+          "durationMs": 1,
+          "timestamp": "2026-10-23T09:40:42.473Z",
+          "summary": "Retrieved 2 internal article(s). Top match: 'Resolving Webhook Signature Failures' (30% match, 1ms).",
+          "details": {
+            "matchedCount": 2,
+            "topScore": 0.3,
+            "matchedArticles": [
+              {
+                "title": "Resolving Webhook Signature Failures",
+                "category": "troubleshooting",
+                "score": 0.3
+              },
+              {
+                "title": "How to retrieve a Scalekit client secret",
+                "category": "faq",
+                "score": 0.26
+              }
+            ]
+          }
+        },
+        {
+          "id": "step_11bd7035",
+          "name": "Web Search Grounding",
+          "stage": "web_search",
+          "status": "completed",
+          "agent": "Search Agent",
+          "durationMs": 3718.3,
+          "timestamp": "2026-10-23T09:40:42.473Z",
+          "summary": "Live search retrieved 3 source URL(s) from Tavily (3718.3ms).",
+          "details": {
+            "searchExecuted": true,
+            "retrievedUrls": [
+              "https://support.google.com/googleapi/answer/6158862?hl=en",
+              "https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api"
+            ]
+          }
+        },
+        {
+          "id": "step_83cca9ab",
+          "name": "Multi-Model AI Synthesis",
+          "stage": "ai_synthesis",
+          "status": "completed",
+          "agent": "Response Agent (GROQ)",
+          "durationMs": 726.3,
+          "timestamp": "2026-10-23T09:40:42.473Z",
+          "summary": "Synthesized response using model 'qwen/qwen3.8-27b'. Tokens: 1084 (815 prompt + 269 completion, 726.3ms).",
+          "details": {
+            "provider": "groq",
+            "model": "qwen/qwen3.8-27b",
+            "promptTokens": 815,
+            "completionTokens": 269,
+            "totalTokens": 1084,
+            "isTokenCountEstimated": false,
+            "modelMs": 726.3
+          }
+        },
+        {
+          "id": "step_f52b7466",
+          "name": "Guardrails & Operational Cost Accounting",
+          "stage": "guardrails_evaluation",
+          "status": "completed",
+          "agent": "Guardrails & Accounting",
+          "durationMs": 1.2,
+          "timestamp": "2026-10-23T09:40:42.473Z",
+          "summary": "Blended confidence: 59%. Triggered Tier-2 human escalation protocol. Cost: $0.000271 USD.",
+          "details": {
+            "blendedConfidence": 0.59,
+            "confidenceBreakdown": "2 KB articles matched (top match: 30%), 2 web sources, model confidence: 85%",
+            "estimatedCostUsd": 0.000271,
+            "formattedCost": "$0.000271 USD",
+            "escalated": true
+          }
+        }
+      ],
+      "telemetry": {
+        "requestId": "req_9bf370bc0873d447",
+        "timestamp": "2026-10-23T09:40:42.473Z",
+        "provider": "groq",
+        "model": "qwen/qwen3.8-27b",
+        "promptTokens": 815,
+        "completionTokens": 269,
+        "totalTokens": 1084,
+        "isTokenCountEstimated": false,
+        "costUsd": 0.000271,
+        "formattedCost": "$0.000271 USD",
+        "latencies": {
+          "totalMs": 4841.3,
+          "intentMs": 393.1,
+          "kbMs": 1,
+          "searchMs": 3718.3,
+          "modelMs": 726.3
+        }
+      },
+      "id": "t_culx4vw",
+      "createdAt": "2026-10-23T09:40:42.474Z",
+      "updatedAt": "2026-10-23T09:40:42.477Z",
       "escalation": {
-        "recommendedResponse": "Hi AGGI SANJAY, I have escalated this ticket. A support engineer is reviewing your request. Below is the preliminary automated advice:\n\nWe apologize for the slow dashboard loading times experienced by your users after the recent product release. We're currently analyzing potential causes and would like to gather more information to better assist you. Could you please provide more details about the issue, such as any error messages or specific times when the slowness occurs?",
+        "recommendedResponse": "Hi Support User, I have escalated this ticket for human review. Preliminary advice:\n\nHello,\n\nThank you for reaching out. To generate an API key in the developer console, please follow these steps:\n\n1. Log in to your developer console dashboard.\n2. Navigate to the 'API Settings' or 'Client Credentials' section.\n3. Click on 'Generate Secret' or 'Create API Key'.\n4. Copy the generated key immediately, as it will only be displayed once for security reasons.\n\nIf you are using a specific platform like Google or Apple, the exact steps may vary slightly. For example, in the Google API Console, you would go to 'APIs & services' > 'Credentials' > 'Create credentials' > 'API key'.\n\nPlease let me know if you need further assistance or if you are using a specific platform that requires different steps.\n\nBest regards,\nCustomer Support",
         "suggestedActions": [
-          "Examine raw integration config for errors",
+          "Inspect raw integration config",
           "Verify domain permissions for the organization",
-          "Schedule video-call support triage"
+          "Schedule priority team support follow-up"
         ]
       }
     },
     {
-      "title": "Multiple users report slow dashboard loading times...",
-      "customerName": "AGGI SANJAY",
-      "customerEmail": "aggisanjay1234@gmail.com",
+      "title": "Where can I find the invoices for my monthly subsc...",
+      "customerName": "Support User",
+      "customerEmail": "user@example.com",
       "status": "escalated",
       "sentiment": "neutral",
-      "confidenceScore": 0.5,
+      "intentCategory": "billing",
+      "intentSummary": "The customer is asking for the location or method to access their monthly subscription invoices.",
+      "confidenceScore": 0.27,
+      "confidenceBreakdown": "2 KB articles matched (top match: 24%), 0 web sources, model confidence: 20%",
       "sourceCount": 2,
+      "sources": [],
       "retrievalStatus": "success",
       "messages": [
         {
           "id": "m1",
           "sender": "customer",
-          "text": "Multiple users report slow dashboard loading times after a product release. Analyze potential causes and prepare a customer-facing response.",
-          "createdAt": "2026-06-12T08:36:13.925Z"
+          "text": "Where can I find the invoices for my monthly subscription?",
+          "createdAt": "2026-10-23T09:40:23.533Z"
         },
         {
           "id": "m2",
           "sender": "ai",
-          "text": "We apologize for the slow dashboard loading times you're experiencing after the recent product release. Our team is actively investigating potential causes, which may include increased traffic, server load, or software issues. To better understand the issue, could you please provide more details about your environment and the exact error messages you're seeing? We'll do our best to address this issue as soon as possible.",
-          "createdAt": "2026-06-12T08:36:13.925Z"
+          "text": "I understand you're looking for your monthly subscription invoices. Typically, you can find these in the 'Billing' or 'Account Settings' section of your portal. If you're having trouble locating them, please let me know, and I can guide you further or connect you with someone who can directly assist with account-specific details.",
+          "createdAt": "2026-10-23T09:40:23.533Z"
         }
       ],
       "workflowSteps": [
         {
           "agent": "Intent Agent",
           "status": "completed",
-          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+          "output": "[billing] The customer is asking for the location or method to access their monthly subscription invoices. (613.7ms)"
         },
         {
           "agent": "Knowledge Agent",
           "status": "completed",
-          "output": "Found 2 matching internal articles: 'How to retrieve a Scalekit client secret', 'OAuth Redirect URI Setup Guide'."
+          "output": "Retrieved 2 internal article(s). Top match: 'Resolving Webhook Signature Failures' (24% match, 2.3ms)."
         },
         {
           "agent": "Search Agent",
           "status": "completed",
-          "output": "Web search skipped because no technical keywords were detected."
-        },
-        {
-          "agent": "Fallback Agent (Groq)",
-          "status": "completed",
-          "output": "Gemini agent execution failed. SAFELY FELL BACK TO GROQ model for ticket parsing."
+          "output": "Skipped external web search. This is a standard account management inquiry that can be answered with internal documentation or UI guidance, requiring no external web search."
         },
         {
           "agent": "Response Agent",
           "status": "completed",
-          "output": "Drafted reply with sentiment 'neutral' and confidence score 50%."
+          "output": "Synthesized reply with sentiment 'neutral' and blended confidence 27% in 3593.4ms."
         }
       ],
-      "id": "t_0f0si6a",
-      "createdAt": "2026-06-12T08:36:13.925Z",
+      "detailedSteps": [
+        {
+          "id": "step_44fbfc7f",
+          "name": "Ticket Ingestion & Sentiment Analysis",
+          "stage": "ingestion",
+          "status": "completed",
+          "agent": "Ingestion Agent",
+          "durationMs": 1.5,
+          "timestamp": "2026-10-23T09:40:23.533Z",
+          "summary": "Ingested ticket payload (58 characters). Detected raw customer sentiment: 'neutral'.",
+          "details": {
+            "characterCount": 58,
+            "sentiment": "neutral"
+          }
+        },
+        {
+          "id": "step_0e44ef34",
+          "name": "Intent Classification & Routing",
+          "stage": "intent_classification",
+          "status": "completed",
+          "agent": "Intent Agent",
+          "durationMs": 613.7,
+          "timestamp": "2026-10-23T09:40:23.533Z",
+          "summary": "Classified category as 'billing'. Needs: The customer is asking for the location or method to access their monthly subscription invoices. (Web search skipped).",
+          "details": {
+            "category": "billing",
+            "summary": "The customer is asking for the location or method to access their monthly subscription invoices.",
+            "requiresWebSearch": false,
+            "searchReasoning": "This is a standard account management inquiry that can be answered with internal documentation or UI guidance, requiring no external web search."
+          }
+        },
+        {
+          "id": "step_5496fc12",
+          "name": "Semantic Knowledge Base Matching",
+          "stage": "kb_retrieval",
+          "status": "completed",
+          "agent": "Knowledge Agent",
+          "durationMs": 2.3,
+          "timestamp": "2026-10-23T09:40:23.533Z",
+          "summary": "Retrieved 2 internal article(s). Top match: 'Resolving Webhook Signature Failures' (24% match, 2.3ms).",
+          "details": {
+            "matchedCount": 2,
+            "topScore": 0.24,
+            "matchedArticles": [
+              {
+                "title": "Resolving Webhook Signature Failures",
+                "category": "troubleshooting",
+                "score": 0.24
+              },
+              {
+                "title": "LangGraph Agent Troubleshooting Guidelines",
+                "category": "internal",
+                "score": 0.23
+              }
+            ]
+          }
+        },
+        {
+          "id": "step_b5675fd4",
+          "name": "Web Search Grounding",
+          "stage": "web_search",
+          "status": "skipped",
+          "agent": "Search Agent",
+          "durationMs": 0,
+          "timestamp": "2026-10-23T09:40:23.533Z",
+          "summary": "Skipped external search: This is a standard account management inquiry that can be answered with internal documentation or UI guidance, requiring no external web search.",
+          "details": {
+            "searchExecuted": false,
+            "retrievedUrls": []
+          }
+        },
+        {
+          "id": "step_2bb1cdc9",
+          "name": "Multi-Model AI Synthesis",
+          "stage": "ai_synthesis",
+          "status": "completed",
+          "agent": "Response Agent (GEMINI)",
+          "durationMs": 3593.4,
+          "timestamp": "2026-10-23T09:40:23.533Z",
+          "summary": "Synthesized response using model 'gemini-2.5-flash'. Tokens: 563 (480 prompt + 83 completion, 3593.4ms).",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-2.5-flash",
+            "promptTokens": 480,
+            "completionTokens": 83,
+            "totalTokens": 563,
+            "isTokenCountEstimated": true,
+            "modelMs": 3593.4
+          }
+        },
+        {
+          "id": "step_c02db088",
+          "name": "Guardrails & Operational Cost Accounting",
+          "stage": "guardrails_evaluation",
+          "status": "completed",
+          "agent": "Guardrails & Accounting",
+          "durationMs": 1.2,
+          "timestamp": "2026-10-23T09:40:23.533Z",
+          "summary": "Blended confidence: 27%. Triggered Tier-2 human escalation protocol. Cost: $0.000061 USD.",
+          "details": {
+            "blendedConfidence": 0.27,
+            "confidenceBreakdown": "2 KB articles matched (top match: 24%), 0 web sources, model confidence: 20%",
+            "estimatedCostUsd": 0.000061,
+            "formattedCost": "$0.000061 USD",
+            "escalated": true
+          }
+        }
+      ],
+      "telemetry": {
+        "requestId": "req_dddba033ef9ce3f1",
+        "timestamp": "2026-10-23T09:40:23.533Z",
+        "provider": "gemini",
+        "model": "gemini-2.5-flash",
+        "promptTokens": 480,
+        "completionTokens": 83,
+        "totalTokens": 563,
+        "isTokenCountEstimated": true,
+        "costUsd": 0.000061,
+        "formattedCost": "$0.000061 USD",
+        "latencies": {
+          "totalMs": 4212.3,
+          "intentMs": 613.7,
+          "kbMs": 2.3,
+          "searchMs": 0,
+          "modelMs": 3593.4
+        }
+      },
+      "id": "t_4kngfxz",
+      "createdAt": "2026-10-23T09:40:23.533Z",
+      "updatedAt": "2026-10-23T09:40:23.537Z",
       "escalation": {
-        "recommendedResponse": "Hi AGGI SANJAY, I have escalated this ticket. A support engineer is reviewing your request. Below is the preliminary automated advice:\n\nWe apologize for the slow dashboard loading times you're experiencing after the recent product release. Our team is actively investigating potential causes, which may include increased traffic, server load, or software issues. To better understand the issue, could you please provide more details about your environment and the exact error messages you're seeing? We'll do our best to address this issue as soon as possible.",
+        "recommendedResponse": "Hi Support User, I have escalated this ticket for human review. Preliminary advice:\n\nI understand you're looking for your monthly subscription invoices. Typically, you can find these in the 'Billing' or 'Account Settings' section of your portal. If you're having trouble locating them, please let me know, and I can guide you further or connect you with someone who can directly assist with account-specific details.",
         "suggestedActions": [
-          "Examine raw integration config for errors",
+          "Inspect raw integration config",
           "Verify domain permissions for the organization",
-          "Schedule video-call support triage"
+          "Schedule priority team support follow-up"
         ]
       }
     },
     {
-      "title": "Test Webhook Signature Issue",
-      "customerName": "Test Customer",
-      "customerEmail": "customer@example.com",
-      "status": "resolved",
+      "title": "Where can I find the invoices for my monthly subsc...",
+      "customerName": "Support User",
+      "customerEmail": "user@example.com",
+      "status": "escalated",
       "sentiment": "neutral",
-      "confidenceScore": 0.8,
-      "sourceCount": 3,
+      "intentCategory": "billing",
+      "intentSummary": "Customer is requesting billing statements, payment method updates, or plan pricing assistance.",
+      "confidenceScore": 0.58,
+      "confidenceBreakdown": "2 KB articles matched (top match: 24%), 0 web sources, model confidence: 88%",
+      "sourceCount": 2,
+      "sources": [],
       "retrievalStatus": "success",
       "messages": [
         {
           "id": "m1",
           "sender": "customer",
-          "text": "I am having signature verification failure when using Webhooks in Node.js",
-          "createdAt": "2026-06-12T08:29:03.320Z"
-        },
-        {
-          "sender": "customer",
-          "text": "[AGENT RESPONSE] You need to place express.json() after the Stripe webhook route.",
-          "id": "msg_j2hygsr",
-          "createdAt": "2026-06-12T08:29:27.816Z"
-        },
-        {
-          "sender": "ai",
-          "text": "Hello,\n\nThank you for reaching out. Regarding the issue with your Stripe webhook verification, it appears that the middleware configuration might be interfering with the request payload.\n\nTo resolve this, please ensure that your webhook route is defined before any global body-parsing middleware, such as `express.json()`. Stripe requires the raw request body to verify signatures, and standard JSON parsing can modify the payload, causing the verification to fail. \n\nIf you continue to experience issues after adjusting the route order, could you please provide the specific error message or status code you are receiving? This will help us investigate further.",
-          "id": "msg_so0hejp",
-          "createdAt": "2026-06-12T08:29:27.818Z"
-        },
-        {
-          "sender": "customer",
-          "text": "[AGENT RESPONSE] Hello,\n\nThank you for reaching out. Regarding the issue with your Stripe webhook verification, it appears that the middleware configuration might be interfering with the request payload.\n\nTo resolve this, please ensure that your webhook route is defined before any global body-parsing middleware, such as `express.json()`. Stripe requires the raw request body to verify signatures, and standard JSON parsing can modify the payload, causing the verification to fail. \n\nIf you continue to experience issues after adjusting the route order, could you please provide the specific error message or status code you are receiving? This will help us investigate further.",
-          "id": "msg_nsa98xu",
-          "createdAt": "2026-06-12T08:33:59.699Z"
-        },
-        {
-          "sender": "ai",
-          "text": "To resolve the Stripe webhook verification issue, ensure your webhook route is defined before any global body-parsing middleware. If issues persist, please provide the specific error message or status code.",
-          "id": "msg_7anp6d3",
-          "createdAt": "2026-06-12T08:33:59.700Z"
-        }
-      ],
-      "workflowSteps": [
-        {
-          "agent": "Intent Agent",
-          "status": "completed",
-          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
-        },
-        {
-          "agent": "Knowledge Agent",
-          "status": "completed",
-          "output": "Found 2 matching internal articles: 'Resolving Webhook Signature Failures', 'LangGraph Agent Troubleshooting Guidelines'."
-        },
-        {
-          "agent": "Search Agent",
-          "status": "completed",
-          "output": "Executed web search. Retrieved 3 grounding URLs from Tavily."
-        },
-        {
-          "agent": "Fallback Agent (Groq)",
-          "status": "completed",
-          "output": "Gemini agent execution failed. SAFELY FELL BACK TO GROQ model for ticket parsing."
-        },
-        {
-          "agent": "Response Agent",
-          "status": "completed",
-          "output": "Drafted reply with sentiment 'neutral' and confidence score 80%."
-        }
-      ],
-      "id": "t_12u9nnv",
-      "createdAt": "2026-06-12T08:29:03.320Z"
-    },
-    {
-      "title": "A customer cannot log in using Google OAuth and re...",
-      "customerName": "AGGI SANJAY",
-      "customerEmail": "aggisanjay1234@gmail.com",
-      "status": "resolved",
-      "sentiment": "neutral",
-      "confidenceScore": 0.8,
-      "sourceCount": 4,
-      "retrievalStatus": "success",
-      "messages": [
-        {
-          "id": "m1",
-          "sender": "customer",
-          "text": "A customer cannot log in using Google OAuth and receives an invalid callback URL error. Generate a support response and troubleshooting steps.",
-          "createdAt": "2026-06-12T08:22:11.849Z"
+          "text": "Where can I find the invoices for my monthly subscription?",
+          "createdAt": "2026-10-23T09:40:03.095Z"
         },
         {
           "id": "m2",
           "sender": "ai",
-          "text": "Hello,\n\nThank you for reaching out regarding the Google OAuth login issue. This error typically occurs when the redirect URI configured in your application does not exactly match the authorized URI in your Google Cloud Console.\n\nPlease verify that your Redirect URI is set correctly. For local testing, ensure you are using 'http://localhost:5000/auth/callback'. For production environments, the URI must be a secure HTTPS endpoint and must match your backend configuration exactly.\n\nTo help us investigate further, could you please provide the exact error message displayed in the browser or the logs? Screenshots of your OAuth configuration (with sensitive data redacted) would also be very helpful.",
-          "createdAt": "2026-06-12T08:22:11.849Z"
-        },
-        {
-          "sender": "customer",
-          "text": "[AGENT RESPONSE] Hello,\n\nThank you for reaching out regarding the Google OAuth login issue. This error typically occurs when the redirect URI configured in your application does not exactly match the authorized URI in your Google Cloud Console.\n\nPlease verify that your Redirect URI is set correctly. For local testing, ensure you are using 'http://localhost:5000/auth/callback'. For production environments, the URI must be a secure HTTPS endpoint and must match your backend configuration exactly.\n\nTo help us investigate further, could you please provide the exact error message displayed in the browser or the logs? Screenshots of your OAuth configuration (with sensitive data redacted) would also be very helpful.",
-          "id": "msg_6cobrs7",
-          "createdAt": "2026-06-12T08:33:17.363Z"
-        },
-        {
-          "sender": "ai",
-          "text": "To resolve the Google OAuth login issue, please verify that your Redirect URI is set correctly. For local testing, use 'http://localhost:5000/auth/callback'. For production, ensure it's a secure HTTPS endpoint matching your backend configuration. Please provide the exact error message and screenshots of your OAuth configuration (with sensitive data redacted) for further investigation.",
-          "id": "msg_vbpyx7v",
-          "createdAt": "2026-06-12T08:33:17.364Z"
+          "text": "Hello!\n\nBased on our documentation regarding Resolving Webhook Signature Failures:\n\nWebhook verification errors usually happen when the payload is modified or parsed before hashing. Verify that: 1. You are using the raw request body buffer to compute the HMAC-SHA256 signature. 2. The signing secret matches the secret from your developer portal. 3. The signature algorithm is SHA-256.\n\nIf you have any further questions or require additional assistance, please let our team know!",
+          "createdAt": "2026-10-23T09:40:03.095Z"
         }
       ],
       "workflowSteps": [
         {
           "agent": "Intent Agent",
           "status": "completed",
-          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+          "output": "[billing] Customer is requesting billing statements, payment method updates, or plan pricing assistance. (0.6ms)"
         },
         {
           "agent": "Knowledge Agent",
           "status": "completed",
-          "output": "Found 2 matching internal articles: 'OAuth Redirect URI Setup Guide', 'Resolving Webhook Signature Failures'."
+          "output": "Retrieved 2 internal article(s). Top match: 'Resolving Webhook Signature Failures' (24% match, 0.7ms)."
         },
         {
           "agent": "Search Agent",
           "status": "completed",
-          "output": "Executed web search. Retrieved 3 grounding URLs from Tavily."
+          "output": "Skipped external web search. Billing inquiries are internal account matters and do not require external web research."
         },
         {
-          "agent": "Fallback Agent (Groq)",
+          "agent": "Resilient Fallback Synthesizer",
           "status": "completed",
-          "output": "Gemini agent execution failed. SAFELY FELL BACK TO GROQ model for ticket parsing."
+          "output": "Cloud AI endpoints unavailable (Please set an API key for Google GenerativeAI in the environment variable GOOGLE_API_KEY or in the `apiKey` field of the ChatGoogleGenerativeAI constructor). Synthesized grounded draft using verified internal knowledge base and intent classification."
         },
         {
           "agent": "Response Agent",
           "status": "completed",
-          "output": "Drafted reply with sentiment 'neutral' and confidence score 80%."
+          "output": "Synthesized reply with sentiment 'neutral' and blended confidence 58% in 0.9ms."
         }
       ],
-      "id": "t_uc93cfi",
-      "createdAt": "2026-06-12T08:22:11.849Z"
+      "detailedSteps": [
+        {
+          "id": "step_329225b6",
+          "name": "Ticket Ingestion & Sentiment Analysis",
+          "stage": "ingestion",
+          "status": "completed",
+          "agent": "Ingestion Agent",
+          "durationMs": 1.5,
+          "timestamp": "2026-10-23T09:40:03.095Z",
+          "summary": "Ingested ticket payload (58 characters). Detected raw customer sentiment: 'neutral'.",
+          "details": {
+            "characterCount": 58,
+            "sentiment": "neutral"
+          }
+        },
+        {
+          "id": "step_ec0681d7",
+          "name": "Intent Classification & Routing",
+          "stage": "intent_classification",
+          "status": "completed",
+          "agent": "Intent Agent",
+          "durationMs": 0.6,
+          "timestamp": "2026-10-23T09:40:03.095Z",
+          "summary": "Classified category as 'billing'. Needs: Customer is requesting billing statements, payment method updates, or plan pricing assistance. (Web search skipped).",
+          "details": {
+            "category": "billing",
+            "summary": "Customer is requesting billing statements, payment method updates, or plan pricing assistance.",
+            "requiresWebSearch": false,
+            "searchReasoning": "Billing inquiries are internal account matters and do not require external web research."
+          }
+        },
+        {
+          "id": "step_e769fa1a",
+          "name": "Semantic Knowledge Base Matching",
+          "stage": "kb_retrieval",
+          "status": "completed",
+          "agent": "Knowledge Agent",
+          "durationMs": 0.7,
+          "timestamp": "2026-10-23T09:40:03.095Z",
+          "summary": "Retrieved 2 internal article(s). Top match: 'Resolving Webhook Signature Failures' (24% match, 0.7ms).",
+          "details": {
+            "matchedCount": 2,
+            "topScore": 0.24,
+            "matchedArticles": [
+              {
+                "title": "Resolving Webhook Signature Failures",
+                "category": "troubleshooting",
+                "score": 0.24
+              },
+              {
+                "title": "LangGraph Agent Troubleshooting Guidelines",
+                "category": "internal",
+                "score": 0.23
+              }
+            ]
+          }
+        },
+        {
+          "id": "step_5c97eecf",
+          "name": "Web Search Grounding",
+          "stage": "web_search",
+          "status": "skipped",
+          "agent": "Search Agent",
+          "durationMs": 0,
+          "timestamp": "2026-10-23T09:40:03.095Z",
+          "summary": "Skipped external search: Billing inquiries are internal account matters and do not require external web research.",
+          "details": {
+            "searchExecuted": false,
+            "retrievedUrls": []
+          }
+        },
+        {
+          "id": "step_7c85ffdd",
+          "name": "Multi-Model AI Synthesis",
+          "stage": "ai_synthesis",
+          "status": "completed",
+          "agent": "Response Agent (GEMINI)",
+          "durationMs": 0.9,
+          "timestamp": "2026-10-23T09:40:03.095Z",
+          "summary": "Synthesized response using model 'deterministic-kb-synthesis'. Tokens: 599 (479 prompt + 120 completion, 0.9ms).",
+          "details": {
+            "provider": "gemini",
+            "model": "deterministic-kb-synthesis",
+            "promptTokens": 479,
+            "completionTokens": 120,
+            "totalTokens": 599,
+            "isTokenCountEstimated": true,
+            "modelMs": 0.9
+          }
+        },
+        {
+          "id": "step_453e42a6",
+          "name": "Guardrails & Operational Cost Accounting",
+          "stage": "guardrails_evaluation",
+          "status": "completed",
+          "agent": "Guardrails & Accounting",
+          "durationMs": 1.2,
+          "timestamp": "2026-10-23T09:40:03.095Z",
+          "summary": "Blended confidence: 58%. Triggered Tier-2 human escalation protocol. Cost: $0.000144 USD.",
+          "details": {
+            "blendedConfidence": 0.58,
+            "confidenceBreakdown": "2 KB articles matched (top match: 24%), 0 web sources, model confidence: 88%",
+            "estimatedCostUsd": 0.000144,
+            "formattedCost": "$0.000144 USD",
+            "escalated": true
+          }
+        }
+      ],
+      "telemetry": {
+        "requestId": "req_243d7c699da948d6",
+        "timestamp": "2026-10-23T09:40:03.095Z",
+        "provider": "gemini",
+        "model": "deterministic-kb-synthesis",
+        "promptTokens": 479,
+        "completionTokens": 120,
+        "totalTokens": 599,
+        "isTokenCountEstimated": true,
+        "costUsd": 0.000144,
+        "formattedCost": "$0.000144 USD",
+        "latencies": {
+          "totalMs": 5,
+          "intentMs": 0.6,
+          "kbMs": 0.7,
+          "searchMs": 0,
+          "modelMs": 0.9
+        }
+      },
+      "id": "t_xiq3j32",
+      "createdAt": "2026-10-23T09:40:03.095Z",
+      "updatedAt": "2026-10-23T09:40:03.098Z",
+      "escalation": {
+        "recommendedResponse": "Hi Support User, I have escalated this ticket for human review. Preliminary advice:\n\nHello!\n\nBased on our documentation regarding Resolving Webhook Signature Failures:\n\nWebhook verification errors usually happen when the payload is modified or parsed before hashing. Verify that: 1. You are using the raw request body buffer to compute the HMAC-SHA256 signature. 2. The signing secret matches the secret from your developer portal. 3. The signature algorithm is SHA-256.\n\nIf you have any further questions or require additional assistance, please let our team know!",
+        "suggestedActions": [
+          "Inspect raw integration config",
+          "Verify domain permissions for the organization",
+          "Schedule priority team support follow-up"
+        ]
+      }
     },
     {
-      "title": "A customer cannot log in using Google OAuth and re...",
-      "customerName": "AGGI SANJAY",
-      "customerEmail": "aggisanjay1234@gmail.com",
-      "status": "resolved",
+      "title": "I cannot log in with 2FA enabled on my account.",
+      "customerName": "Support User",
+      "customerEmail": "user@example.com",
+      "status": "open",
       "sentiment": "neutral",
-      "confidenceScore": 0.9,
-      "sourceCount": 4,
+      "intentCategory": "account/access",
+      "intentSummary": "Customer is requesting account recovery, secret credential retrieval, or user permissions help.",
+      "confidenceScore": 0.81,
+      "confidenceBreakdown": "0 KB articles matched (top match: 0%), 0 web sources, model confidence: 72%",
+      "sourceCount": 0,
+      "sources": [],
+      "retrievalStatus": "none",
+      "messages": [
+        {
+          "id": "m1",
+          "sender": "customer",
+          "text": "I cannot log in with 2FA enabled on my account.",
+          "createdAt": "2026-10-23T09:39:23.935Z"
+        },
+        {
+          "id": "m2",
+          "sender": "ai",
+          "text": "Hello! Thank you for reaching out regarding your support inquiry. We have categorized this under account/access. Our support engineering team is actively reviewing your request and will follow up shortly.",
+          "createdAt": "2026-10-23T09:39:23.935Z"
+        }
+      ],
+      "workflowSteps": [
+        {
+          "agent": "Intent Agent",
+          "status": "completed",
+          "output": "[account/access] Customer is requesting account recovery, secret credential retrieval, or user permissions help. (0.2ms)"
+        },
+        {
+          "agent": "Knowledge Agent",
+          "status": "completed",
+          "output": "Knowledge search executed (0.3ms). No direct internal runbook matched (threshold < 15%)."
+        },
+        {
+          "agent": "Search Agent",
+          "status": "completed",
+          "output": "Skipped external web search. Account access protocols are covered directly by internal admin documentation."
+        },
+        {
+          "agent": "Resilient Fallback Synthesizer",
+          "status": "completed",
+          "output": "Cloud AI endpoints unavailable (Please set an API key for Google GenerativeAI in the environment variable GOOGLE_API_KEY or in the `apiKey` field of the ChatGoogleGenerativeAI constructor). Synthesized grounded draft using verified internal knowledge base and intent classification."
+        },
+        {
+          "agent": "Response Agent",
+          "status": "completed",
+          "output": "Synthesized reply with sentiment 'neutral' and blended confidence 81% in 0.2ms."
+        }
+      ],
+      "detailedSteps": [
+        {
+          "id": "step_2ec0bf65",
+          "name": "Ticket Ingestion & Sentiment Analysis",
+          "stage": "ingestion",
+          "status": "completed",
+          "agent": "Ingestion Agent",
+          "durationMs": 1.5,
+          "timestamp": "2026-10-23T09:39:23.935Z",
+          "summary": "Ingested ticket payload (47 characters). Detected raw customer sentiment: 'neutral'.",
+          "details": {
+            "characterCount": 47,
+            "sentiment": "neutral"
+          }
+        },
+        {
+          "id": "step_c8e8d3d0",
+          "name": "Intent Classification & Routing",
+          "stage": "intent_classification",
+          "status": "completed",
+          "agent": "Intent Agent",
+          "durationMs": 0.2,
+          "timestamp": "2026-10-23T09:39:23.935Z",
+          "summary": "Classified category as 'account/access'. Needs: Customer is requesting account recovery, secret credential retrieval, or user permissions help. (Web search skipped).",
+          "details": {
+            "category": "account/access",
+            "summary": "Customer is requesting account recovery, secret credential retrieval, or user permissions help.",
+            "requiresWebSearch": false,
+            "searchReasoning": "Account access protocols are covered directly by internal admin documentation."
+          }
+        },
+        {
+          "id": "step_6af16110",
+          "name": "Semantic Knowledge Base Matching",
+          "stage": "kb_retrieval",
+          "status": "completed",
+          "agent": "Knowledge Agent",
+          "durationMs": 0.3,
+          "timestamp": "2026-10-23T09:39:23.935Z",
+          "summary": "Knowledge search executed (0.3ms). No direct internal runbook matched (threshold < 15%).",
+          "details": {
+            "matchedCount": 0,
+            "topScore": 0,
+            "matchedArticles": []
+          }
+        },
+        {
+          "id": "step_9480e5da",
+          "name": "Web Search Grounding",
+          "stage": "web_search",
+          "status": "skipped",
+          "agent": "Search Agent",
+          "durationMs": 0,
+          "timestamp": "2026-10-23T09:39:23.935Z",
+          "summary": "Skipped external search: Account access protocols are covered directly by internal admin documentation.",
+          "details": {
+            "searchExecuted": false,
+            "retrievedUrls": []
+          }
+        },
+        {
+          "id": "step_161014b8",
+          "name": "Multi-Model AI Synthesis",
+          "stage": "ai_synthesis",
+          "status": "completed",
+          "agent": "Response Agent (GEMINI)",
+          "durationMs": 0.2,
+          "timestamp": "2026-10-23T09:39:23.935Z",
+          "summary": "Synthesized response using model 'deterministic-kb-synthesis'. Tokens: 323 (272 prompt + 51 completion, 0.2ms).",
+          "details": {
+            "provider": "gemini",
+            "model": "deterministic-kb-synthesis",
+            "promptTokens": 272,
+            "completionTokens": 51,
+            "totalTokens": 323,
+            "isTokenCountEstimated": true,
+            "modelMs": 0.2
+          }
+        },
+        {
+          "id": "step_ea6b5069",
+          "name": "Guardrails & Operational Cost Accounting",
+          "stage": "guardrails_evaluation",
+          "status": "completed",
+          "agent": "Guardrails & Accounting",
+          "durationMs": 1.2,
+          "timestamp": "2026-10-23T09:39:23.935Z",
+          "summary": "Blended confidence: 81%. Passed confidence threshold. Cost: $0.000071 USD.",
+          "details": {
+            "blendedConfidence": 0.81,
+            "confidenceBreakdown": "0 KB articles matched (top match: 0%), 0 web sources, model confidence: 72%",
+            "estimatedCostUsd": 0.000071,
+            "formattedCost": "$0.000071 USD",
+            "escalated": false
+          }
+        }
+      ],
+      "telemetry": {
+        "requestId": "req_6beb25c4c2a785e7",
+        "timestamp": "2026-10-23T09:39:23.935Z",
+        "provider": "gemini",
+        "model": "deterministic-kb-synthesis",
+        "promptTokens": 272,
+        "completionTokens": 51,
+        "totalTokens": 323,
+        "isTokenCountEstimated": true,
+        "costUsd": 0.000071,
+        "formattedCost": "$0.000071 USD",
+        "latencies": {
+          "totalMs": 1,
+          "intentMs": 0.2,
+          "kbMs": 0.3,
+          "searchMs": 0,
+          "modelMs": 0.2
+        }
+      },
+      "id": "t_rkdsmth",
+      "createdAt": "2026-10-23T09:39:23.935Z",
+      "updatedAt": "2026-10-23T09:39:23.935Z"
+    },
+    {
+      "title": "Where can I find the invoices for my monthly subsc...",
+      "customerName": "Support User",
+      "customerEmail": "user@example.com",
+      "status": "escalated",
+      "sentiment": "neutral",
+      "intentCategory": "billing",
+      "intentSummary": "Customer is requesting billing statements, payment method updates, or plan pricing assistance.",
+      "confidenceScore": 0.58,
+      "confidenceBreakdown": "2 KB articles matched (top match: 24%), 0 web sources, model confidence: 88%",
+      "sourceCount": 2,
+      "sources": [],
       "retrievalStatus": "success",
       "messages": [
         {
           "id": "m1",
           "sender": "customer",
-          "text": "A customer cannot log in using Google OAuth and receives an invalid callback URL error. Generate a support response and troubleshooting steps.",
-          "createdAt": "2026-06-12T08:20:27.012Z"
+          "text": "Where can I find the invoices for my monthly subscription?",
+          "createdAt": "2026-10-23T09:39:23.904Z"
         },
         {
           "id": "m2",
           "sender": "ai",
-          "text": "Hello,\n\nThank you for reaching out regarding the Google OAuth login issue. An 'invalid callback URL' error usually indicates a mismatch between the Redirect URI configured in your application and the one registered in your Google Cloud Console.\n\nTo troubleshoot this, please verify that the Redirect URI matches exactly in both settings. If you are testing in a local environment, ensure you are using 'http://localhost:5000/auth/callback'. For production, the URI must use a secure HTTPS endpoint. Even a small difference, such as a trailing slash or a protocol mismatch (HTTP vs. HTTPS), can cause this error.\n\nCould you please confirm if this error is occurring in your local development environment or in production? Additionally, sharing the specific Redirect URI you have configured would help us assist you further.",
-          "createdAt": "2026-06-12T08:20:27.012Z"
+          "text": "Hello!\n\nBased on our documentation regarding Resolving Webhook Signature Failures:\n\nWebhook verification errors usually happen when the payload is modified or parsed before hashing. Verify that: 1. You are using the raw request body buffer to compute the HMAC-SHA256 signature. 2. The signing secret matches the secret from your developer portal. 3. The signature algorithm is SHA-256.\n\nIf you have any further questions or require additional assistance, please let our team know!",
+          "createdAt": "2026-10-23T09:39:23.904Z"
         }
       ],
       "workflowSteps": [
         {
           "agent": "Intent Agent",
           "status": "completed",
-          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+          "output": "[billing] Customer is requesting billing statements, payment method updates, or plan pricing assistance. (0.7ms)"
         },
         {
           "agent": "Knowledge Agent",
           "status": "completed",
-          "output": "Found 2 matching internal articles: 'OAuth Redirect URI Setup Guide', 'LangGraph Agent Troubleshooting Guidelines'."
+          "output": "Retrieved 2 internal article(s). Top match: 'Resolving Webhook Signature Failures' (24% match, 0.7ms)."
         },
         {
           "agent": "Search Agent",
           "status": "completed",
-          "output": "Executed web search. Retrieved 3 grounding URLs from Tavily."
+          "output": "Skipped external web search. Billing inquiries are internal account matters and do not require external web research."
+        },
+        {
+          "agent": "Resilient Fallback Synthesizer",
+          "status": "completed",
+          "output": "Cloud AI endpoints unavailable (Please set an API key for Google GenerativeAI in the environment variable GOOGLE_API_KEY or in the `apiKey` field of the ChatGoogleGenerativeAI constructor). Synthesized grounded draft using verified internal knowledge base and intent classification."
         },
         {
           "agent": "Response Agent",
           "status": "completed",
-          "output": "Drafted reply with sentiment 'neutral' and confidence score 90%."
+          "output": "Synthesized reply with sentiment 'neutral' and blended confidence 58% in 0.8ms."
         }
       ],
-      "id": "t_01bidrt",
-      "createdAt": "2026-06-12T08:20:27.012Z"
+      "detailedSteps": [
+        {
+          "id": "step_35549517",
+          "name": "Ticket Ingestion & Sentiment Analysis",
+          "stage": "ingestion",
+          "status": "completed",
+          "agent": "Ingestion Agent",
+          "durationMs": 1.5,
+          "timestamp": "2026-10-23T09:39:23.904Z",
+          "summary": "Ingested ticket payload (58 characters). Detected raw customer sentiment: 'neutral'.",
+          "details": {
+            "characterCount": 58,
+            "sentiment": "neutral"
+          }
+        },
+        {
+          "id": "step_b3291609",
+          "name": "Intent Classification & Routing",
+          "stage": "intent_classification",
+          "status": "completed",
+          "agent": "Intent Agent",
+          "durationMs": 0.7,
+          "timestamp": "2026-10-23T09:39:23.904Z",
+          "summary": "Classified category as 'billing'. Needs: Customer is requesting billing statements, payment method updates, or plan pricing assistance. (Web search skipped).",
+          "details": {
+            "category": "billing",
+            "summary": "Customer is requesting billing statements, payment method updates, or plan pricing assistance.",
+            "requiresWebSearch": false,
+            "searchReasoning": "Billing inquiries are internal account matters and do not require external web research."
+          }
+        },
+        {
+          "id": "step_819a3bc7",
+          "name": "Semantic Knowledge Base Matching",
+          "stage": "kb_retrieval",
+          "status": "completed",
+          "agent": "Knowledge Agent",
+          "durationMs": 0.7,
+          "timestamp": "2026-10-23T09:39:23.904Z",
+          "summary": "Retrieved 2 internal article(s). Top match: 'Resolving Webhook Signature Failures' (24% match, 0.7ms).",
+          "details": {
+            "matchedCount": 2,
+            "topScore": 0.24,
+            "matchedArticles": [
+              {
+                "title": "Resolving Webhook Signature Failures",
+                "category": "troubleshooting",
+                "score": 0.24
+              },
+              {
+                "title": "LangGraph Agent Troubleshooting Guidelines",
+                "category": "internal",
+                "score": 0.23
+              }
+            ]
+          }
+        },
+        {
+          "id": "step_82160463",
+          "name": "Web Search Grounding",
+          "stage": "web_search",
+          "status": "skipped",
+          "agent": "Search Agent",
+          "durationMs": 0,
+          "timestamp": "2026-10-23T09:39:23.904Z",
+          "summary": "Skipped external search: Billing inquiries are internal account matters and do not require external web research.",
+          "details": {
+            "searchExecuted": false,
+            "retrievedUrls": []
+          }
+        },
+        {
+          "id": "step_714ec22e",
+          "name": "Multi-Model AI Synthesis",
+          "stage": "ai_synthesis",
+          "status": "completed",
+          "agent": "Response Agent (GEMINI)",
+          "durationMs": 0.8,
+          "timestamp": "2026-10-23T09:39:23.904Z",
+          "summary": "Synthesized response using model 'deterministic-kb-synthesis'. Tokens: 599 (479 prompt + 120 completion, 0.8ms).",
+          "details": {
+            "provider": "gemini",
+            "model": "deterministic-kb-synthesis",
+            "promptTokens": 479,
+            "completionTokens": 120,
+            "totalTokens": 599,
+            "isTokenCountEstimated": true,
+            "modelMs": 0.8
+          }
+        },
+        {
+          "id": "step_f2a2682e",
+          "name": "Guardrails & Operational Cost Accounting",
+          "stage": "guardrails_evaluation",
+          "status": "completed",
+          "agent": "Guardrails & Accounting",
+          "durationMs": 1.2,
+          "timestamp": "2026-10-23T09:39:23.904Z",
+          "summary": "Blended confidence: 58%. Triggered Tier-2 human escalation protocol. Cost: $0.000144 USD.",
+          "details": {
+            "blendedConfidence": 0.58,
+            "confidenceBreakdown": "2 KB articles matched (top match: 24%), 0 web sources, model confidence: 88%",
+            "estimatedCostUsd": 0.000144,
+            "formattedCost": "$0.000144 USD",
+            "escalated": true
+          }
+        }
+      ],
+      "telemetry": {
+        "requestId": "req_951be7fddd7693be",
+        "timestamp": "2026-10-23T09:39:23.904Z",
+        "provider": "gemini",
+        "model": "deterministic-kb-synthesis",
+        "promptTokens": 479,
+        "completionTokens": 120,
+        "totalTokens": 599,
+        "isTokenCountEstimated": true,
+        "costUsd": 0.000144,
+        "formattedCost": "$0.000144 USD",
+        "latencies": {
+          "totalMs": 5.6,
+          "intentMs": 0.7,
+          "kbMs": 0.7,
+          "searchMs": 0,
+          "modelMs": 0.8
+        }
+      },
+      "id": "t_cp9ijvg",
+      "createdAt": "2026-10-23T09:39:23.904Z",
+      "updatedAt": "2026-10-23T09:39:23.907Z",
+      "escalation": {
+        "recommendedResponse": "Hi Support User, I have escalated this ticket for human review. Preliminary advice:\n\nHello!\n\nBased on our documentation regarding Resolving Webhook Signature Failures:\n\nWebhook verification errors usually happen when the payload is modified or parsed before hashing. Verify that: 1. You are using the raw request body buffer to compute the HMAC-SHA256 signature. 2. The signing secret matches the secret from your developer portal. 3. The signature algorithm is SHA-256.\n\nIf you have any further questions or require additional assistance, please let our team know!",
+        "suggestedActions": [
+          "Inspect raw integration config",
+          "Verify domain permissions for the organization",
+          "Schedule priority team support follow-up"
+        ]
+      }
+    },
+    {
+      "title": "Test Inbound Webhook Bug Ticket",
+      "customerName": "Acme Corp Lead",
+      "customerEmail": "lead@acme.com",
+      "status": "resolved",
+      "sentiment": "neutral",
+      "intentCategory": "general",
+      "intentSummary": "Test Inbound Webhook Bug Ticket",
+      "confidenceScore": 0.95,
+      "confidenceBreakdown": "Manually registered inbound ticket",
+      "sourceCount": 0,
+      "sources": [],
+      "retrievalStatus": "none",
+      "messages": [
+        {
+          "id": "m1",
+          "sender": "customer",
+          "text": "We are getting HMAC validation error on webhook endpoint.",
+          "createdAt": "2026-10-23T09:35:14.604Z"
+        },
+        {
+          "sender": "agent",
+          "text": "Hello! We have reviewed your webhook setup and recommend using bodyParser.raw().",
+          "id": "msg_2hdebnv",
+          "createdAt": "2026-10-23T09:35:14.618Z"
+        }
+      ],
+      "workflowSteps": [],
+      "id": "t_5tbn051",
+      "createdAt": "2026-10-23T09:35:14.604Z",
+      "updatedAt": "2026-10-23T09:35:14.621Z"
     },
     {
       "id": "t_1",
       "title": "OAuth Redirect URI mismatch error in Scalekit",
       "customerName": "Alice Johnson",
       "customerEmail": "alice@example.com",
-      "status": "resolved",
-      "sentiment": "neutral",
-      "confidenceScore": 1,
-      "sourceCount": 4,
+      "status": "open",
+      "sentiment": "frustrated",
+      "intentCategory": "technical/integration",
+      "intentSummary": "Customer is experiencing redirect_uri_mismatch during Scalekit OAuth callback configuration.",
+      "confidenceScore": 0.88,
+      "confidenceBreakdown": "1 KB article matched (OAuth Redirect URI Setup Guide, 92% match), 0 web citations, 85% model self-assessment",
+      "sourceCount": 1,
+      "sources": [],
       "retrievalStatus": "success",
-      "createdAt": "2026-06-10T06:46:48.835Z",
+      "createdAt": "2026-10-21T09:00:19.488Z",
       "messages": [
         {
           "id": "msg_1_1",
           "sender": "customer",
           "text": "Hi support team, I am trying to authenticate via Scalekit OAuth but I keep getting a redirect_uri_mismatch error on the callback. Can you please check what might be wrong? We need this fixed today.",
-          "createdAt": "2026-06-10T06:46:48.835Z"
+          "createdAt": "2026-10-21T09:00:19.488Z"
         },
         {
           "id": "msg_1_2",
           "sender": "ai",
           "text": "Hello Alice, I see you are experiencing a redirect_uri_mismatch error. This error indicates that the callback URL sent in the request does not match the redirect URL registered in your Scalekit developer console.\n\nPlease verify that 'http://localhost:5000/auth/callback' is registered as an authorized redirect URI in your settings.",
-          "createdAt": "2026-06-10T06:46:58.835Z"
-        },
-        {
-          "sender": "customer",
-          "text": "[AGENT RESPONSE] Hello Alice, I see you are experiencing a redirect_uri_mismatch error. This error indicates that the callback URL sent in the request does not match the redirect URL registered in your Scalekit developer console.\n\nPlease verify that 'http://localhost:5000/auth/callback' is registered as an authorized redirect URI in your settings.",
-          "id": "msg_0mxkx9l",
-          "createdAt": "2026-06-12T07:37:27.737Z"
-        },
-        {
-          "sender": "ai",
-          "text": "Hello Alice,\n\nI understand you are encountering a 'redirect_uri_mismatch' error. This typically indicates that the callback URL sent in your authentication request does not exactly match the redirect URI registered in your developer settings.\n\nPlease verify that 'http://localhost:5000/auth/callback' is correctly listed as an authorized redirect URI in your developer console. If you are moving toward a production environment, please ensure this is updated to your secure HTTPS backend endpoint.\n\nCould you please confirm if these settings match on your end, or if you continue to see this error after updating them?",
-          "id": "msg_136dns0",
-          "createdAt": "2026-06-12T07:37:27.739Z"
+          "createdAt": "2026-10-21T09:00:29.489Z"
         }
       ],
       "workflowSteps": [
         {
           "agent": "Intent Agent",
           "status": "completed",
-          "output": "Analyzed customer ticket text. Topic relates to general B2B operations."
+          "output": "[technical/integration] User needs resolution for OAuth redirect URI mismatch during SSO authentication."
         },
         {
           "agent": "Knowledge Agent",
           "status": "completed",
-          "output": "Found 2 matching internal articles: 'OAuth Redirect URI Setup Guide', 'Resolving Webhook Signature Failures'."
+          "output": "Retrieved article 'OAuth Redirect URI Setup Guide' (92% semantic cosine match)."
         },
         {
           "agent": "Search Agent",
           "status": "completed",
-          "output": "Executed web search. Retrieved 3 grounding URLs from Tavily."
+          "output": "Skipped external web search because internal knowledge article provides exact resolution."
         },
         {
           "agent": "Response Agent",
           "status": "completed",
-          "output": "Drafted reply with sentiment 'neutral' and confidence score 100%."
+          "output": "Drafted response with 88% blended confidence (1 KB source + 85% model score)."
+        }
+      ],
+      "telemetry": {
+        "requestId": "req_init_t1",
+        "timestamp": "2026-10-21T09:00:19.489Z",
+        "provider": "gemini",
+        "model": "gemini-1.5-flash",
+        "promptTokens": 840,
+        "completionTokens": 210,
+        "totalTokens": 1050,
+        "isTokenCountEstimated": false,
+        "costUsd": 0.000126,
+        "formattedCost": "$0.000126 USD",
+        "latencies": {
+          "totalMs": 382.4,
+          "intentMs": 24.1,
+          "kbMs": 8.6,
+          "searchMs": 0,
+          "modelMs": 349.7
+        }
+      },
+      "detailedSteps": [
+        {
+          "id": "step_1_1",
+          "name": "Ticket Ingestion & Sentiment Analysis",
+          "stage": "ingestion",
+          "status": "completed",
+          "agent": "Ingestion Agent",
+          "durationMs": 2.1,
+          "timestamp": "2026-10-21T09:00:19.489Z",
+          "summary": "Ingested customer query (192 chars). Customer sentiment: 'frustrated' due to launch block."
+        },
+        {
+          "id": "step_1_2",
+          "name": "Intent Classification & Routing",
+          "stage": "intent_classification",
+          "status": "completed",
+          "agent": "Intent Agent",
+          "durationMs": 24.1,
+          "timestamp": "2026-10-21T09:00:19.509Z",
+          "summary": "Classified category as 'technical/integration'. Summary: Customer blocked by redirect_uri_mismatch during Scalekit OAuth callback."
+        },
+        {
+          "id": "step_1_3",
+          "name": "Semantic Knowledge Base Matching",
+          "stage": "kb_retrieval",
+          "status": "completed",
+          "agent": "Knowledge Agent",
+          "durationMs": 8.6,
+          "timestamp": "2026-10-21T09:00:19.539Z",
+          "summary": "Executed cosine TF-IDF vector matching. Matched 'OAuth Redirect URI Setup Guide' (92% relevance)."
+        },
+        {
+          "id": "step_1_4",
+          "name": "Web Search Grounding Decision",
+          "stage": "web_search",
+          "status": "skipped",
+          "agent": "Search Agent",
+          "durationMs": 0.5,
+          "timestamp": "2026-10-21T09:00:19.549Z",
+          "summary": "Skipped external web search. Internal knowledge runbook provides 100% grounded technical answer."
+        },
+        {
+          "id": "step_1_5",
+          "name": "Multi-Model AI Synthesis",
+          "stage": "ai_synthesis",
+          "status": "completed",
+          "agent": "Response Agent (Gemini)",
+          "durationMs": 349.7,
+          "timestamp": "2026-10-21T09:00:19.559Z",
+          "summary": "Synthesized verified technical solution via Gemini 1.5 Flash. Consumed 840 prompt tokens and 210 output tokens."
+        },
+        {
+          "id": "step_1_6",
+          "name": "Guardrails & Operational Cost Accounting",
+          "stage": "guardrails_evaluation",
+          "status": "completed",
+          "agent": "Guardrails & Accounting",
+          "durationMs": 1.2,
+          "timestamp": "2026-10-21T09:00:19.909Z",
+          "summary": "Blended confidence: 88%. Total cost: $0.000126 USD. Bypassed auto-escalation as verified runbook matched."
         }
       ]
     },
@@ -529,46 +1364,131 @@
       "title": "Webhook signature mismatch on node express server",
       "customerName": "Bob Smith",
       "customerEmail": "bob@devops.io",
-      "status": "resolved",
+      "status": "escalated",
       "sentiment": "critical",
+      "intentCategory": "bug report",
+      "intentSummary": "Customer is blocked by HMAC SHA-256 webhook signature verification failure on Node Express.",
       "confidenceScore": 0.45,
+      "confidenceBreakdown": "0 KB articles with direct match, 1 external search attempted, 40% model self-assessment",
       "sourceCount": 0,
+      "sources": [],
       "retrievalStatus": "failed",
-      "createdAt": "2026-06-11T06:46:48.835Z",
+      "createdAt": "2026-10-22T09:00:19.489Z",
       "messages": [
         {
           "id": "msg_2_1",
           "sender": "customer",
           "text": "I am trying to deploy webhooks but signature verification keeps failing. I have copied the signing secret exactly but the crypt hash comparison always returns false. This is blocking our launch.",
-          "createdAt": "2026-06-11T06:46:48.835Z"
+          "createdAt": "2026-10-22T09:00:19.489Z"
         },
         {
           "id": "msg_2_2",
           "sender": "ai",
           "text": "Hello Bob, I apologize for the inconvenience. A webhook signature failure usually occurs because your Express backend parses the body into JSON before verification, changing the raw string representation. Please verify that you are extracting the raw body buffer when checking the HMAC signature.",
-          "createdAt": "2026-06-11T06:47:03.835Z"
+          "createdAt": "2026-10-22T09:00:34.489Z"
         }
       ],
       "workflowSteps": [
         {
           "agent": "Intent Agent",
           "status": "completed",
-          "output": "Identified topic as webhook integration bugs."
+          "output": "[bug report] Critical HMAC SHA-256 verification failure blocking production webhook launch."
         },
         {
           "agent": "Knowledge Agent",
           "status": "completed",
-          "output": "Searched articles but could not find precise matches."
+          "output": "Searched internal knowledge base but match score was below confidence threshold (18%)."
         },
         {
           "agent": "Search Agent",
           "status": "completed",
-          "output": "Attempted Tavily search for 'webhook signature node express failures' but results were thin."
+          "output": "Executed live Tavily search for 'Node express rawBody HMAC signature verification' (retrieved 2 URLs)."
         },
         {
           "agent": "Response Agent",
           "status": "completed",
-          "output": "Formulated response. Triggered auto-escalation due to low confidence score (45%)."
+          "output": "Formulated response. Triggered automated Tier-2 escalation due to critical customer sentiment and low grounding confidence (45%)."
+        }
+      ],
+      "telemetry": {
+        "requestId": "req_init_t2",
+        "timestamp": "2026-10-22T09:00:19.489Z",
+        "provider": "groq",
+        "model": "llama-3.3-70b-versatile",
+        "promptTokens": 960,
+        "completionTokens": 280,
+        "totalTokens": 1240,
+        "isTokenCountEstimated": false,
+        "costUsd": 0.000788,
+        "formattedCost": "$0.000788 USD",
+        "latencies": {
+          "totalMs": 442.1,
+          "intentMs": 22.4,
+          "kbMs": 9.1,
+          "searchMs": 148.2,
+          "modelMs": 262.4
+        }
+      },
+      "detailedSteps": [
+        {
+          "id": "step_2_1",
+          "name": "Ticket Ingestion & Sentiment Analysis",
+          "stage": "ingestion",
+          "status": "completed",
+          "agent": "Ingestion Agent",
+          "durationMs": 1.8,
+          "timestamp": "2026-10-22T09:00:19.489Z",
+          "summary": "Ingested critical customer ticket. Detected high-severity 'critical' sentiment with blocking impact."
+        },
+        {
+          "id": "step_2_2",
+          "name": "Intent Classification & Routing",
+          "stage": "intent_classification",
+          "status": "completed",
+          "agent": "Intent Agent",
+          "durationMs": 22.4,
+          "timestamp": "2026-10-22T09:00:19.509Z",
+          "summary": "Classified category as 'bug report'. Required web search: true (developer SDK protocol specifications)."
+        },
+        {
+          "id": "step_2_3",
+          "name": "Semantic Knowledge Base Matching",
+          "stage": "kb_retrieval",
+          "status": "completed",
+          "agent": "Knowledge Agent",
+          "durationMs": 9.1,
+          "timestamp": "2026-10-22T09:00:19.539Z",
+          "summary": "Internal KB search returned no direct match above 15% threshold."
+        },
+        {
+          "id": "step_2_4",
+          "name": "Web Search Grounding",
+          "stage": "web_search",
+          "status": "completed",
+          "agent": "Search Agent",
+          "durationMs": 148.2,
+          "timestamp": "2026-10-22T09:00:19.549Z",
+          "summary": "Executed live search for 'Node express rawBody HMAC signature verification' (retrieved 2 URLs)."
+        },
+        {
+          "id": "step_2_5",
+          "name": "Multi-Model AI Synthesis",
+          "stage": "ai_synthesis",
+          "status": "completed",
+          "agent": "Response Agent (Groq)",
+          "durationMs": 262.4,
+          "timestamp": "2026-10-22T09:00:19.699Z",
+          "summary": "Synthesized developer guidance via Groq LLaMA-3.3-70B. Prompt tokens: 960, completion tokens: 280."
+        },
+        {
+          "id": "step_2_6",
+          "name": "Guardrails & Operational Cost Accounting",
+          "stage": "guardrails_evaluation",
+          "status": "completed",
+          "agent": "Guardrails & Accounting",
+          "durationMs": 1.5,
+          "timestamp": "2026-10-22T09:00:19.964Z",
+          "summary": "Blended confidence: 45%. Triggered automated Tier-2 human escalation protocol due to critical customer urgency."
         }
       ],
       "escalation": {
@@ -587,46 +1507,316 @@
       "customerEmail": "charlie@company.com",
       "status": "resolved",
       "sentiment": "positive",
-      "confidenceScore": 0.95,
+      "intentCategory": "general",
+      "intentSummary": "Customer confirms successful client secret generation and resolves OAuth ticket.",
+      "confidenceScore": 0.96,
+      "confidenceBreakdown": "1 KB article confirmed, resolution confirmed by customer, 95% model confidence",
       "sourceCount": 1,
+      "sources": [],
       "retrievalStatus": "success",
-      "createdAt": "2026-06-12T02:46:48.835Z",
+      "createdAt": "2026-10-23T05:00:19.489Z",
       "messages": [
         {
           "id": "msg_3_1",
           "sender": "customer",
           "text": "The guidance you sent regarding generating the client secret worked perfectly. We have successfully logged in via OAuth now. Thanks for the quick support!",
-          "createdAt": "2026-06-12T02:46:48.835Z"
+          "createdAt": "2026-10-23T05:00:19.489Z"
         },
         {
           "id": "msg_3_2",
           "sender": "ai",
           "text": "You are very welcome Charlie! I'm glad to hear your OAuth setup is working. I will mark this ticket as resolved. Let us know if you need any other assistance.",
-          "createdAt": "2026-06-12T02:46:53.835Z"
+          "createdAt": "2026-10-23T05:00:24.489Z"
         }
       ],
       "workflowSteps": [
         {
           "agent": "Intent Agent",
           "status": "completed",
-          "output": "Identified customer message as gratitude / confirmation of issue resolution."
+          "output": "[general] Customer confirmation of successful resolution and positive gratitude."
         },
         {
           "agent": "Knowledge Agent",
           "status": "completed",
-          "output": "Checked DB for related articles."
+          "output": "Matched resolution history with 'How to retrieve a Scalekit client secret'."
         },
         {
           "agent": "Search Agent",
           "status": "completed",
-          "output": "Skipped search."
+          "output": "Skipped external search for ticket resolution acknowledgment."
         },
         {
           "agent": "Response Agent",
           "status": "completed",
-          "output": "Closed the thread and replied politely."
+          "output": "Drafted closure message and auto-marked ticket as resolved."
+        }
+      ],
+      "telemetry": {
+        "requestId": "req_init_t3",
+        "timestamp": "2026-10-23T05:00:19.489Z",
+        "provider": "gemini",
+        "model": "gemini-1.5-flash",
+        "promptTokens": 420,
+        "completionTokens": 85,
+        "totalTokens": 505,
+        "isTokenCountEstimated": false,
+        "costUsd": 0.000057,
+        "formattedCost": "$0.000057 USD",
+        "latencies": {
+          "totalMs": 185.3,
+          "intentMs": 14.2,
+          "kbMs": 4.1,
+          "searchMs": 0,
+          "modelMs": 167
+        }
+      },
+      "detailedSteps": [
+        {
+          "id": "step_3_1",
+          "name": "Ticket Ingestion & Sentiment Analysis",
+          "stage": "ingestion",
+          "status": "completed",
+          "agent": "Ingestion Agent",
+          "durationMs": 1.2,
+          "timestamp": "2026-10-23T05:00:19.489Z",
+          "summary": "Ingested customer note. Detected positive gratitude and successful resolution."
+        },
+        {
+          "id": "step_3_2",
+          "name": "Intent Classification & Routing",
+          "stage": "intent_classification",
+          "status": "completed",
+          "agent": "Intent Agent",
+          "durationMs": 14.2,
+          "timestamp": "2026-10-23T05:00:19.499Z",
+          "summary": "Classified as 'general' gratitude. Web search skipped."
+        },
+        {
+          "id": "step_3_3",
+          "name": "Semantic Knowledge Base Matching",
+          "stage": "kb_retrieval",
+          "status": "completed",
+          "agent": "Knowledge Agent",
+          "durationMs": 4.1,
+          "timestamp": "2026-10-23T05:00:19.519Z",
+          "summary": "Linked resolution with 'How to retrieve a Scalekit client secret'."
+        },
+        {
+          "id": "step_3_4",
+          "name": "Web Search Grounding Decision",
+          "stage": "web_search",
+          "status": "skipped",
+          "agent": "Search Agent",
+          "durationMs": 0,
+          "timestamp": "2026-10-23T05:00:19.529Z",
+          "summary": "External search not required for customer resolution acknowledgment."
+        },
+        {
+          "id": "step_3_5",
+          "name": "Multi-Model AI Synthesis",
+          "stage": "ai_synthesis",
+          "status": "completed",
+          "agent": "Response Agent (Gemini)",
+          "durationMs": 167,
+          "timestamp": "2026-10-23T05:00:19.539Z",
+          "summary": "Formulated warm closing acknowledgment. Input tokens: 420, output tokens: 85."
+        },
+        {
+          "id": "step_3_6",
+          "name": "Guardrails & Operational Cost Accounting",
+          "stage": "guardrails_evaluation",
+          "status": "completed",
+          "agent": "Guardrails & Accounting",
+          "durationMs": 1,
+          "timestamp": "2026-10-23T05:00:19.709Z",
+          "summary": "Blended confidence: 96%. Auto-marked ticket as resolved. Cost: $0.000057 USD."
         }
       ]
+    }
+  ],
+  "telemetry": [
+    {
+      "requestId": "req_c537c41d74f3ba0b",
+      "timestamp": "2026-10-23T10:16:49.312Z",
+      "provider": "gemini",
+      "actualModel": "gemini-2.5-flash",
+      "promptTokens": 893,
+      "completionTokens": 189,
+      "totalTokens": 1082,
+      "isTokenCountEstimated": true,
+      "estimatedCostUsd": 0.000124,
+      "outcome": "success",
+      "latencies": {
+        "totalMs": 13988.4,
+        "intentMs": 935.4,
+        "kbMs": 5.7,
+        "searchMs": 4786.3,
+        "modelMs": 8236.4
+      },
+      "ticketId": "t_i9fh4c6"
+    },
+    {
+      "requestId": "req_9bf370bc0873d447",
+      "timestamp": "2026-10-23T09:40:42.473Z",
+      "provider": "groq",
+      "actualModel": "qwen/qwen3.8-27b",
+      "promptTokens": 815,
+      "completionTokens": 269,
+      "totalTokens": 1084,
+      "isTokenCountEstimated": false,
+      "estimatedCostUsd": 0.000271,
+      "outcome": "success",
+      "latencies": {
+        "totalMs": 4841.3,
+        "intentMs": 393.1,
+        "kbMs": 1,
+        "searchMs": 3718.3,
+        "modelMs": 726.3
+      },
+      "ticketId": "t_culx4vw"
+    },
+    {
+      "requestId": "req_dddba033ef9ce3f1",
+      "timestamp": "2026-10-23T09:40:23.533Z",
+      "provider": "gemini",
+      "actualModel": "gemini-2.5-flash",
+      "promptTokens": 480,
+      "completionTokens": 83,
+      "totalTokens": 563,
+      "isTokenCountEstimated": true,
+      "estimatedCostUsd": 0.000061,
+      "outcome": "success",
+      "latencies": {
+        "totalMs": 4212.3,
+        "intentMs": 613.7,
+        "kbMs": 2.3,
+        "searchMs": 0,
+        "modelMs": 3593.4
+      },
+      "ticketId": "t_4kngfxz"
+    },
+    {
+      "requestId": "req_243d7c699da948d6",
+      "timestamp": "2026-10-23T09:40:03.095Z",
+      "provider": "gemini",
+      "actualModel": "deterministic-kb-synthesis",
+      "promptTokens": 479,
+      "completionTokens": 120,
+      "totalTokens": 599,
+      "isTokenCountEstimated": true,
+      "estimatedCostUsd": 0.000144,
+      "outcome": "fallback",
+      "failureReason": "Please set an API key for Google GenerativeAI in the environment variable GOOGLE_API_KEY or in the `apiKey` field of the ChatGoogleGenerativeAI constructor",
+      "latencies": {
+        "totalMs": 5,
+        "intentMs": 0.6,
+        "kbMs": 0.7,
+        "searchMs": 0,
+        "modelMs": 0.9
+      },
+      "ticketId": "t_xiq3j32"
+    },
+    {
+      "requestId": "req_6beb25c4c2a785e7",
+      "timestamp": "2026-10-23T09:39:23.935Z",
+      "provider": "gemini",
+      "actualModel": "deterministic-kb-synthesis",
+      "promptTokens": 272,
+      "completionTokens": 51,
+      "totalTokens": 323,
+      "isTokenCountEstimated": true,
+      "estimatedCostUsd": 0.000071,
+      "outcome": "fallback",
+      "failureReason": "Please set an API key for Google GenerativeAI in the environment variable GOOGLE_API_KEY or in the `apiKey` field of the ChatGoogleGenerativeAI constructor",
+      "latencies": {
+        "totalMs": 1,
+        "intentMs": 0.2,
+        "kbMs": 0.3,
+        "searchMs": 0,
+        "modelMs": 0.2
+      },
+      "ticketId": "t_rkdsmth"
+    },
+    {
+      "requestId": "req_951be7fddd7693be",
+      "timestamp": "2026-10-23T09:39:23.904Z",
+      "provider": "gemini",
+      "actualModel": "deterministic-kb-synthesis",
+      "promptTokens": 479,
+      "completionTokens": 120,
+      "totalTokens": 599,
+      "isTokenCountEstimated": true,
+      "estimatedCostUsd": 0.000144,
+      "outcome": "fallback",
+      "failureReason": "Please set an API key for Google GenerativeAI in the environment variable GOOGLE_API_KEY or in the `apiKey` field of the ChatGoogleGenerativeAI constructor",
+      "latencies": {
+        "totalMs": 5.6,
+        "intentMs": 0.7,
+        "kbMs": 0.7,
+        "searchMs": 0,
+        "modelMs": 0.8
+      },
+      "ticketId": "t_cp9ijvg"
+    },
+    {
+      "requestId": "req_init_t1",
+      "timestamp": "2026-10-21T09:00:19.489Z",
+      "provider": "gemini",
+      "actualModel": "gemini-1.5-flash",
+      "promptTokens": 840,
+      "completionTokens": 210,
+      "totalTokens": 1050,
+      "isTokenCountEstimated": false,
+      "estimatedCostUsd": 0.000126,
+      "outcome": "success",
+      "latencies": {
+        "totalMs": 382.4,
+        "intentMs": 24.1,
+        "kbMs": 8.6,
+        "searchMs": 0,
+        "modelMs": 349.7
+      },
+      "ticketId": "t_1"
+    },
+    {
+      "requestId": "req_init_t2",
+      "timestamp": "2026-10-22T09:00:19.489Z",
+      "provider": "groq",
+      "actualModel": "llama-3.3-70b-versatile",
+      "promptTokens": 960,
+      "completionTokens": 280,
+      "totalTokens": 1240,
+      "isTokenCountEstimated": false,
+      "estimatedCostUsd": 0.000788,
+      "outcome": "fallback",
+      "latencies": {
+        "totalMs": 442.1,
+        "intentMs": 22.4,
+        "kbMs": 9.1,
+        "searchMs": 148.2,
+        "modelMs": 262.4
+      },
+      "ticketId": "t_2"
+    },
+    {
+      "requestId": "req_init_t3",
+      "timestamp": "2026-10-23T05:00:19.489Z",
+      "provider": "gemini",
+      "actualModel": "gemini-1.5-flash",
+      "promptTokens": 420,
+      "completionTokens": 85,
+      "totalTokens": 505,
+      "isTokenCountEstimated": false,
+      "estimatedCostUsd": 0.000057,
+      "outcome": "success",
+      "latencies": {
+        "totalMs": 185.3,
+        "intentMs": 14.2,
+        "kbMs": 4.1,
+        "searchMs": 0,
+        "modelMs": 167
+      },
+      "ticketId": "t_3"
     }
   ]
 }
