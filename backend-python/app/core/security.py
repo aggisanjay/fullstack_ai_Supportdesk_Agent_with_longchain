@@ -20,17 +20,32 @@ class SessionUser(BaseModel):
     name: str | None = None
 
 
-def _cookie_options(settings: Settings) -> dict[str, Any]:
-    is_prod = settings.is_production
+def _cookie_options(settings: Settings, request: Request | None = None) -> dict[str, Any]:
+    is_https = (
+        settings.is_production
+        or settings.backend_url.lower().startswith("https://")
+        or (
+            request is not None
+            and (
+                request.url.scheme == "https"
+                or request.headers.get("x-forwarded-proto") == "https"
+            )
+        )
+    )
     return {
         "httponly": True,
-        "secure": is_prod,
-        "samesite": "none" if is_prod else "lax",
+        "secure": is_https,
+        "samesite": "none" if is_https else "lax",
         "path": "/",
     }
 
 
-def set_session_cookie(response: Response, user: SessionUser, settings: Settings | None = None) -> None:
+def set_session_cookie(
+    response: Response,
+    user: SessionUser,
+    settings: Settings | None = None,
+    request: Request | None = None,
+) -> str:
     settings = settings or get_settings()
     payload = {
         "id": user.id,
@@ -41,7 +56,7 @@ def set_session_cookie(response: Response, user: SessionUser, settings: Settings
     }
     token = jwt.encode(payload, settings.session_jwt_secret, algorithm="HS256")
 
-    opts = _cookie_options(settings)
+    opts = _cookie_options(settings, request=request)
     max_age = settings.session_jwt_expiry_days * 24 * 60 * 60
     response.set_cookie(
         key=settings.session_cookie_name,
@@ -49,12 +64,23 @@ def set_session_cookie(response: Response, user: SessionUser, settings: Settings
         max_age=max_age,
         **opts,
     )
+    return token
 
 
-def clear_session_cookie(response: Response, settings: Settings | None = None) -> None:
+def clear_session_cookie(
+    response: Response,
+    settings: Settings | None = None,
+    request: Request | None = None,
+) -> None:
     settings = settings or get_settings()
-    opts = _cookie_options(settings)
-    response.delete_cookie(key=settings.session_cookie_name, **opts)
+    opts = _cookie_options(settings, request=request)
+    response.delete_cookie(
+        key=settings.session_cookie_name,
+        path=opts.get("path", "/"),
+        secure=opts.get("secure", False),
+        httponly=opts.get("httponly", True),
+        samesite=opts.get("samesite", "lax"),
+    )
 
 
 import logging
@@ -65,6 +91,11 @@ logger = logging.getLogger(__name__)
 def read_session_cookie(request: Request, settings: Settings | None = None) -> SessionUser | None:
     settings = settings or get_settings()
     token = request.cookies.get(settings.session_cookie_name)
+    if not token:
+        auth_hdr = request.headers.get("authorization") or request.headers.get("Authorization")
+        if auth_hdr and auth_hdr.lower().startswith("bearer "):
+            token = auth_hdr[7:].strip()
+
     if not token:
         logger.debug(
             "read_session_cookie: cookie '%s' missing. Incoming cookies: %s",

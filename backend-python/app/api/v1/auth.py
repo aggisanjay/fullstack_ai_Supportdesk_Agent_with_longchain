@@ -18,6 +18,7 @@ from app.core.config import Settings, get_settings
 from app.core.exceptions import UnauthorizedError
 from app.core.security import (
     SessionUser,
+    _cookie_options,
     clear_session_cookie,
     read_session_cookie,
     set_session_cookie,
@@ -57,10 +58,11 @@ def require_auth(request: Request, settings: Settings = Depends(get_settings)) -
 
 
 @router.get("/login")
-async def login(settings: Settings = Depends(get_settings)) -> Any:
+async def login(request: Request, settings: Settings = Depends(get_settings)) -> Any:
     """Redirect user directly to the authentic Scalekit OAuth authorization URL."""
     state = secrets.token_hex(16)
     redirect_uri = f"{settings.backend_url}/auth/callback"
+    opts = _cookie_options(settings, request=request)
 
     if ScalekitClient and settings.scalekit_client_id and settings.scalekit_client_secret:
         try:
@@ -75,33 +77,26 @@ async def login(settings: Settings = Depends(get_settings)) -> Any:
             auth_url = client.get_authorization_url(redirect_uri=redirect_uri, options=options)
 
             res = RedirectResponse(url=auth_url, status_code=302)
-            res.set_cookie(
-                "sp_oauth_state",
-                state,
-                httponly=True,
-                secure=settings.is_production,
-                samesite="none" if settings.is_production else "lax",
-                max_age=1200,
-            )
+            res.set_cookie("sp_oauth_state", state, max_age=1200, **opts)
             return res
         except Exception as e:
             logger.warning("Scalekit client error: %s", e)
 
-    # Fallback to direct URL construction
-    auth_url = (
-        f"{settings.scalekit_environment_url}/oauth/authorize?"
-        f"response_type=code&client_id={settings.scalekit_client_id}&"
-        f"redirect_uri={redirect_uri}&scope=openid+profile+email&state={state}&prompt=login"
-    )
-    res = RedirectResponse(url=auth_url, status_code=302)
-    res.set_cookie(
-        "sp_oauth_state",
-        state,
-        httponly=True,
-        secure=settings.is_production,
-        samesite="none" if settings.is_production else "lax",
-        max_age=1200,
-    )
+    if settings.scalekit_environment_url and settings.scalekit_client_id:
+        auth_url = (
+            f"{settings.scalekit_environment_url}/oauth/authorize?"
+            f"response_type=code&client_id={settings.scalekit_client_id}&"
+            f"redirect_uri={redirect_uri}&scope=openid+profile+email&state={state}&prompt=login"
+        )
+        res = RedirectResponse(url=auth_url, status_code=302)
+        res.set_cookie("sp_oauth_state", state, max_age=1200, **opts)
+        return res
+
+    # Demo fallback when Scalekit credentials are not configured
+    logger.info("Scalekit credentials not set - redirecting directly to callback with demo session")
+    demo_redirect = f"{redirect_uri}?code=demo_session&state={state}"
+    res = RedirectResponse(url=demo_redirect, status_code=302)
+    res.set_cookie("sp_oauth_state", state, max_age=1200, **opts)
     return res
 
 
@@ -114,12 +109,19 @@ async def callback(
     error: str | None = None,
     settings: Settings = Depends(get_settings),
 ) -> HTMLResponse:
+    frontend_target = settings.frontend_url.rstrip("/")
     if error:
-        return RedirectResponse(f"{settings.frontend_url}/login?error={error}")
+        return RedirectResponse(f"{frontend_target}/login?error={error}")
 
     user_info = None
 
-    if ScalekitClient and settings.scalekit_client_id and settings.scalekit_client_secret and code:
+    if (
+        ScalekitClient
+        and settings.scalekit_client_id
+        and settings.scalekit_client_secret
+        and code
+        and code != "demo_session"
+    ):
         try:
             client = ScalekitClient(
                 env_url=settings.scalekit_environment_url,
@@ -158,6 +160,7 @@ async def callback(
     <html>
       <head>
         <title>Authentication Successful</title>
+        <meta http-equiv="Cross-Origin-Opener-Policy" content="unsafe-none">
         <style>
           body {{ background: #0A0A0F; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }}
           .card {{ text-align: center; }}
@@ -170,22 +173,33 @@ async def callback(
         </div>
         <script>
           try {{
-            if (window.opener) {{
+            if (window.opener && !window.opener.closed) {{
               window.opener.postMessage({{ type: "SCALEKIT_AUTH_SUCCESS" }}, "*");
-              setTimeout(() => window.close(), 100);
+              setTimeout(() => {{
+                try {{ window.close(); }} catch(e) {{}}
+              }}, 150);
             }} else {{
-              window.location.href = "{settings.frontend_url}/support";
+              window.location.href = "{frontend_target}/support";
             }}
           }} catch(e) {{
-            window.location.href = "{settings.frontend_url}/support";
+            window.location.href = "{frontend_target}/support";
           }}
         </script>
       </body>
     </html>
     """
     res = HTMLResponse(content=html_content)
-    set_session_cookie(res, user_info, settings)
-    res.delete_cookie("sp_oauth_state")
+    res.headers["Cross-Origin-Opener-Policy"] = "unsafe-none"
+    res.headers["Cross-Origin-Embedder-Policy"] = "unsafe-none"
+    set_session_cookie(res, user_info, settings, request=request)
+    opts = _cookie_options(settings, request=request)
+    res.delete_cookie(
+        "sp_oauth_state",
+        path=opts.get("path", "/"),
+        secure=opts.get("secure", False),
+        httponly=opts.get("httponly", True),
+        samesite=opts.get("samesite", "lax"),
+    )
     return res
 
 
@@ -195,14 +209,19 @@ async def get_me(user: SessionUser = Depends(require_auth)) -> UserResponse:
 
 
 @router.post("/logout")
-async def logout(response: Response, settings: Settings = Depends(get_settings)) -> OkResponse:
-    clear_session_cookie(response, settings)
+async def logout(
+    request: Request,
+    response: Response,
+    settings: Settings = Depends(get_settings),
+) -> OkResponse:
+    clear_session_cookie(response, settings, request=request)
     return OkResponse()
 
 
 @router.post("/e2e/login")
 async def e2e_login(
     body: E2ELoginRequest,
+    request: Request,
     response: Response,
     settings: Settings = Depends(get_settings),
 ) -> dict[str, Any]:
@@ -216,12 +235,11 @@ async def e2e_login(
     )
     email = body.email.strip() or "e2e@test.local"
     name = body.name.strip() or "E2E Lead Support"
-
     user = SessionUser(id=user_id, email=email, name=name)
-    set_session_cookie(response, user, settings)
+    token = set_session_cookie(response, user, settings, request=request)
 
     logger.info("E2E login issued for %s (%s)", email, user_id)
-    return {"ok": True, "user": {"id": user_id, "email": email, "name": name}}
+    return {"ok": True, "token": token, "user": {"id": user_id, "email": email, "name": name}}
 
 
 @router.post("/e2e/logout")

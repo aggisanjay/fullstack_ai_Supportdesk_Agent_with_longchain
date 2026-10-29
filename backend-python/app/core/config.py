@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     )
     backend_url: str = Field(default="http://localhost:5000", description="Public backend origin")
     frontend_url: str = Field(default="http://localhost:5173", description="Allowed CORS frontend origin")
+    allowed_origins: str = Field(
+        default="",
+        description="Comma-separated list of additional allowed CORS origins",
+    )
 
     session_cookie_name: str = Field(default="session", description="JWT cookie name")
     session_jwt_secret: str = Field(
@@ -77,19 +81,28 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins(self) -> list[str]:
-        origins = [self.frontend_url]
-        if self.is_development:
-            origins.extend(
-                [
-                    "http://localhost:5173",
-                    "http://127.0.0.1:5173",
-                    "http://localhost:5000",
-                    "http://127.0.0.1:5000",
-                    "http://localhost:3000",
-                    "http://127.0.0.1:3000",
-                ]
-            )
-        return list(dict.fromkeys(origins))
+        raw_list: list[str] = []
+        if self.frontend_url:
+            raw_list.extend([x.strip() for x in self.frontend_url.split(",") if x.strip()])
+        if self.allowed_origins:
+            raw_list.extend([x.strip() for x in self.allowed_origins.split(",") if x.strip()])
+
+        raw_list.extend(
+            [
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+                "http://localhost:5000",
+                "http://127.0.0.1:5000",
+                "http://localhost:3000",
+                "http://127.0.0.1:3000",
+            ]
+        )
+
+        cleaned: list[str] = []
+        for origin in raw_list:
+            cleaned.append(origin.rstrip("/"))
+
+        return list(dict.fromkeys(cleaned))
 
     def provider_is_configured(self, provider: str) -> bool:
         key_map = {

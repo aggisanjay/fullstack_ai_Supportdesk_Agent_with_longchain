@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function fetchUser() {
     const res = await apiGet<MeResponse>("/auth/me");
 
-    if (res.ok) {
+    if (res.ok && res.data?.user) {
       setUser(res.data.user);
     } else {
       setUser(null);
@@ -59,23 +59,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes,scrollbars=yes`
     );
 
+    let finished = false;
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const cleanup = () => {
+      finished = true;
+      if (interval) clearInterval(interval);
+      window.removeEventListener("message", handleMessage);
+      window.removeEventListener("focus", handleFocus);
+    };
+
     const handleMessage = async (event: MessageEvent) => {
       if (event.data?.type === "SCALEKIT_AUTH_SUCCESS") {
-        window.removeEventListener("message", handleMessage);
+        cleanup();
         await fetchUser();
         if (onSuccess) onSuccess();
       }
     };
 
-    window.addEventListener("message", handleMessage);
+    const handleFocus = async () => {
+      setTimeout(async () => {
+        if (!finished) {
+          const res = await apiGet<MeResponse>("/auth/me");
+          if (res.ok && res.data?.user) {
+            cleanup();
+            setUser(res.data.user);
+            if (onSuccess) onSuccess();
+          }
+        }
+      }, 500);
+    };
 
-    const interval = setInterval(() => {
-      if (popup?.closed) {
-        clearInterval(interval);
-        window.removeEventListener("message", handleMessage);
-        fetchUser().then(() => {
-          if (onSuccess) onSuccess();
-        });
+    window.addEventListener("message", handleMessage);
+    window.addEventListener("focus", handleFocus);
+
+    interval = setInterval(() => {
+      if (finished) return;
+      try {
+        if (popup?.closed) {
+          cleanup();
+          fetchUser().then(() => {
+            if (onSuccess) onSuccess();
+          });
+        }
+      } catch {
+        // Cross-Origin-Opener-Policy can block inspecting popup.closed across origins.
       }
     }, 1000);
   }
