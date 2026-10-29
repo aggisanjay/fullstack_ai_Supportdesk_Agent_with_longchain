@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 
 def test_settings_load_from_env() -> None:
     from app.core.config import get_settings
@@ -29,4 +27,3 @@ def test_settings_is_development() -> None:
     settings = get_settings()
     assert settings.is_development is True
     assert settings.is_production is False
-

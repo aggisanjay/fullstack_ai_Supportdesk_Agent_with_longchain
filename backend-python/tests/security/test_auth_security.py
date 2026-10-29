@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from datetime import UTC
+
 import pytest
 from httpx import AsyncClient
-from app.core.security import SessionUser, set_session_cookie
+
 from app.core.config import get_settings
 
 
@@ -15,14 +17,15 @@ async def test_invalid_session_cookie_returns_401(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_expired_session_cookie_returns_401(client: AsyncClient) -> None:
+    from datetime import datetime, timedelta
+
     from jose import jwt
-    from datetime import datetime, timedelta, timezone
 
     settings = get_settings()
     expired_payload = {
         "id": "usr_expired",
         "email": "expired@test.local",
-        "exp": datetime.now(timezone.utc) - timedelta(days=1),
+        "exp": datetime.now(UTC) - timedelta(days=1),
     }
     expired_token = jwt.encode(expired_payload, settings.session_jwt_secret, algorithm="HS256")
     client.cookies.set("session", expired_token)
@@ -53,4 +56,3 @@ async def test_e2e_login_disabled_in_production(client: AsyncClient) -> None:
         assert resp.status_code == 401
     finally:
         settings.node_env = original_env
-

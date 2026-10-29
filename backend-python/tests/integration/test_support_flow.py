@@ -74,4 +74,3 @@ async def test_full_support_api_lifecycle(auth_client: AsyncClient) -> None:
     # 8. Clean up KB article
     del_resp = await auth_client.delete(f"/api/support/kb/{article_id}")
     assert del_resp.status_code == 200
-

@@ -5,23 +5,23 @@ Repository layer providing clean CRUD operations on Domain Models.
 from __future__ import annotations
 
 import uuid
-from typing import Any, List, Optional
-from sqlalchemy import select, update, delete
-from sqlalchemy.orm import selectinload
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import KBArticle, DocumentChunk, Ticket, TicketMessage, TelemetryRecord
+from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from app.db.models import KBArticle, TelemetryRecord, Ticket, TicketMessage
 
 
 class KBRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_all(self) -> List[KBArticle]:
+    async def get_all(self) -> list[KBArticle]:
         result = await self.db.execute(select(KBArticle).order_by(KBArticle.created_at.desc()))
         return list(result.scalars().all())
 
-    async def get_by_id(self, article_id: str) -> Optional[KBArticle]:
+    async def get_by_id(self, article_id: str) -> KBArticle | None:
         result = await self.db.execute(
             select(KBArticle).options(selectinload(KBArticle.chunks)).where(KBArticle.id == article_id)
         )
@@ -33,7 +33,7 @@ class KBRepository:
         await self.db.flush()
         return article
 
-    async def update(self, article_id: str, **kwargs) -> Optional[KBArticle]:
+    async def update(self, article_id: str, **kwargs) -> KBArticle | None:
         article = await self.get_by_id(article_id)
         if not article:
             return None
@@ -56,13 +56,13 @@ class TicketRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_all(self) -> List[Ticket]:
+    async def get_all(self) -> list[Ticket]:
         result = await self.db.execute(
             select(Ticket).options(selectinload(Ticket.messages)).order_by(Ticket.created_at.desc())
         )
         return list(result.scalars().all())
 
-    async def get_by_id(self, ticket_id: str) -> Optional[Ticket]:
+    async def get_by_id(self, ticket_id: str) -> Ticket | None:
         result = await self.db.execute(
             select(Ticket).options(selectinload(Ticket.messages)).where(Ticket.id == ticket_id)
         )
@@ -76,7 +76,7 @@ class TicketRepository:
         await self.db.flush()
         return ticket
 
-    async def update(self, ticket_id: str, **kwargs) -> Optional[Ticket]:
+    async def update(self, ticket_id: str, **kwargs) -> Ticket | None:
         ticket = await self.get_by_id(ticket_id)
         if not ticket:
             return None
@@ -113,9 +113,6 @@ class TelemetryRepository:
         await self.db.flush()
         return record
 
-    async def get_recent(self, limit: int = 50) -> List[TelemetryRecord]:
-        result = await self.db.execute(
-            select(TelemetryRecord).order_by(TelemetryRecord.created_at.desc()).limit(limit)
-        )
+    async def get_recent(self, limit: int = 50) -> list[TelemetryRecord]:
+        result = await self.db.execute(select(TelemetryRecord).order_by(TelemetryRecord.created_at.desc()).limit(limit))
         return list(result.scalars().all())
-

@@ -24,7 +24,7 @@ from app.core.security import (
 )
 
 try:
-    from scalekit import ScalekitClient, AuthorizationUrlOptions, CodeAuthenticationOptions
+    from scalekit import AuthorizationUrlOptions, CodeAuthenticationOptions, ScalekitClient
 except ImportError:
     ScalekitClient = None
     AuthorizationUrlOptions = None
@@ -73,7 +73,7 @@ async def login(settings: Settings = Depends(get_settings)) -> Any:
             options.state = state
             options.prompt = "login"
             auth_url = client.get_authorization_url(redirect_uri=redirect_uri, options=options)
-            
+
             res = RedirectResponse(url=auth_url, status_code=302)
             res.set_cookie(
                 "sp_oauth_state",
@@ -129,7 +129,7 @@ async def callback(
             redirect_uri = f"{settings.backend_url}/auth/callback"
             options = CodeAuthenticationOptions() if CodeAuthenticationOptions else None
             auth_res = client.authenticate_with_code(code=code, redirect_uri=redirect_uri, options=options)
-            
+
             u_dict = auth_res.get("user") if isinstance(auth_res, dict) else getattr(auth_res, "user", None)
             if u_dict:
                 if isinstance(u_dict, dict):
@@ -209,8 +209,10 @@ async def e2e_login(
     if settings.is_production or not settings.e2e_test_mode:
         raise UnauthorizedError("Not found")
 
-    user_id = body.id.strip() if body.id.strip() else "usr_" + "".join(
-        random.choices(string.ascii_lowercase + string.digits, k=7)
+    user_id = (
+        body.id.strip()
+        if body.id.strip()
+        else "usr_" + "".join(random.choices(string.ascii_lowercase + string.digits, k=7))
     )
     email = body.email.strip() or "e2e@test.local"
     name = body.name.strip() or "E2E Lead Support"

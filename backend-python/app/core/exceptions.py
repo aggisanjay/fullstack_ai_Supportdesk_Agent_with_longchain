@@ -61,7 +61,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def app_error_handler(_request: Request, exc: AppError) -> JSONResponse:
         if exc.status_code >= 500:
-            logger.error("AppError %d: %s", exc.status_code, exc.message, exc_info=True)
+            logger.error("AppError %d: %s", exc.status_code, exc.message, exc_info=exc)
         else:
             logger.warning("AppError %d: %s", exc.status_code, exc.message)
         return JSONResponse(
@@ -71,10 +71,7 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(_request: Request, exc: RequestValidationError) -> JSONResponse:
-        issues = [
-            {"field": ".".join(str(loc) for loc in e["loc"]), "message": e["msg"]}
-            for e in exc.errors()
-        ]
+        issues = [{"field": ".".join(str(loc) for loc in e["loc"]), "message": e["msg"]} for e in exc.errors()]
         return JSONResponse(
             status_code=400,
             content=ErrorResponse(error="Invalid input", detail=issues).model_dump(),
@@ -87,4 +84,3 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=500,
             content=ErrorResponse(error="Internal server error").model_dump(),
         )
-

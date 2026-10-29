@@ -5,7 +5,7 @@ Tavily Search wrapper service.
 from __future__ import annotations
 
 import logging
-from typing import Any, List
+
 from pydantic import BaseModel
 from tavily import TavilyClient
 
@@ -24,7 +24,7 @@ class SearchService:
     def __init__(self, settings: Settings | None = None):
         self.settings = settings or get_settings()
 
-    async def search(self, query: str, max_results: int = 3) -> List[TavilyResult]:
+    async def search(self, query: str, max_results: int = 3) -> list[TavilyResult]:
         if not self.settings.tavily_api_key or len(self.settings.tavily_api_key) < 5:
             logger.info("Tavily API key not configured, returning empty search results.")
             return []
@@ -44,4 +44,3 @@ class SearchService:
         except Exception as e:
             logger.warning("Tavily search failed for query '%s': %s", query, e)
             return []
-

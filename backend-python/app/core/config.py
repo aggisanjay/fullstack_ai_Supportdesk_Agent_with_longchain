@@ -7,7 +7,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,12 +23,8 @@ class Settings(BaseSettings):
     node_env: Literal["development", "production", "test"] = Field(
         default="development", description="Runtime environment"
     )
-    backend_url: str = Field(
-        default="http://localhost:5000", description="Public backend origin"
-    )
-    frontend_url: str = Field(
-        default="http://localhost:5173", description="Allowed CORS frontend origin"
-    )
+    backend_url: str = Field(default="http://localhost:5000", description="Public backend origin")
+    frontend_url: str = Field(default="http://localhost:5173", description="Allowed CORS frontend origin")
 
     session_cookie_name: str = Field(default="session", description="JWT cookie name")
     session_jwt_secret: str = Field(
@@ -58,9 +54,7 @@ class Settings(BaseSettings):
         description="Sync database URL for Alembic migrations",
     )
 
-    embedding_model: str = Field(
-        default="text-embedding-3-small", description="Embedding model identifier"
-    )
+    embedding_model: str = Field(default="text-embedding-3-small", description="Embedding model identifier")
     embedding_dimensions: int = Field(default=1536, description="Vector dimensions for pgvector")
     chunk_size: int = Field(default=512, description="Token count per document chunk")
     chunk_overlap: int = Field(default=64, description="Overlap tokens between chunks")
@@ -85,14 +79,16 @@ class Settings(BaseSettings):
     def cors_origins(self) -> list[str]:
         origins = [self.frontend_url]
         if self.is_development:
-            origins.extend([
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://localhost:5000",
-                "http://127.0.0.1:5000",
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
-            ])
+            origins.extend(
+                [
+                    "http://localhost:5173",
+                    "http://127.0.0.1:5173",
+                    "http://localhost:5000",
+                    "http://127.0.0.1:5000",
+                    "http://localhost:3000",
+                    "http://127.0.0.1:3000",
+                ]
+            )
         return list(dict.fromkeys(origins))
 
     def provider_is_configured(self, provider: str) -> bool:
@@ -109,4 +105,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-

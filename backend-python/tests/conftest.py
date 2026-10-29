@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 import os
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from app.db.base import Base
 from app.db.session import get_db
-import app.db.models  # ensure models are registered
 
 
 @pytest.fixture(autouse=True, scope="session")
@@ -27,6 +26,7 @@ def _set_test_env() -> None:
 @pytest_asyncio.fixture
 async def app_with_test_db():
     from app.core.config import get_settings
+
     get_settings.cache_clear()
 
     # Use StaticPool so all connections share the same in-memory SQLite database!
@@ -51,6 +51,7 @@ async def app_with_test_db():
                 raise
 
     from app.main import create_app
+
     app = create_app()
     app.dependency_overrides[get_db] = override_get_db
 

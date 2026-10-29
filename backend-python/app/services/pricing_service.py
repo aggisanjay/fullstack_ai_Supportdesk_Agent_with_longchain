@@ -5,7 +5,6 @@ Pricing tables and token cost estimation.
 from __future__ import annotations
 
 import math
-from typing import Optional, Tuple
 
 PRICING_TABLE = {
     "gemini-2.5-flash": {"prompt": 0.075 / 1_000_000, "completion": 0.30 / 1_000_000},
@@ -20,9 +19,7 @@ def estimate_tokens(text: str) -> int:
     return max(1, math.ceil(len(text) / 4))
 
 
-def calculate_estimated_cost(
-    model_id: str, prompt_tokens: int, completion_tokens: int
-) -> Tuple[Optional[float], str]:
+def calculate_estimated_cost(model_id: str, prompt_tokens: int, completion_tokens: int) -> tuple[float | None, str]:
     pricing = None
     for key, rate in PRICING_TABLE.items():
         if key in model_id.lower():
@@ -34,4 +31,3 @@ def calculate_estimated_cost(
 
     cost = (prompt_tokens * pricing["prompt"]) + (completion_tokens * pricing["completion"])
     return round(cost, 6), f"${cost:.6f} USD"
-

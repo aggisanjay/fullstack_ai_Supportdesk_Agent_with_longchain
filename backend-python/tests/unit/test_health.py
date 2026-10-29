@@ -22,4 +22,3 @@ async def test_health_endpoint(client: AsyncClient) -> None:
     assert data["status"] == "UP"
     assert "version" in data
     assert "timestamp" in data
-

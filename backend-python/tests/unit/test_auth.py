@@ -38,4 +38,3 @@ async def test_logout_clears_cookie(auth_client: AsyncClient) -> None:
     resp = await auth_client.post("/auth/logout")
     assert resp.status_code == 200
     assert resp.json()["ok"] is True
-

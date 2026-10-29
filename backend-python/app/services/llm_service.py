@@ -5,10 +5,10 @@ LLM Provider Service providing robust, multi-provider model instances with fallb
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_openai import ChatOpenAI
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 
 from app.core.config import Settings, get_settings
 from app.core.exceptions import ProviderError
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class LLMService:
-    def __init__(self, settings: Optional[Settings] = None):
+    def __init__(self, settings: Settings | None = None):
         self.settings = settings or get_settings()
 
     def get_model(self, provider: str, temperature: float = 0.2) -> BaseChatModel:
@@ -74,4 +74,3 @@ class LLMService:
             preferred_provider,
             f"No configured LLM providers available: {last_error}",
         )
-

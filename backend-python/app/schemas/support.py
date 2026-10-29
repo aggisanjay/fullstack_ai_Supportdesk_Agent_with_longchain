@@ -4,7 +4,8 @@ Pydantic schemas matching the original Express API contract.
 
 from __future__ import annotations
 
-from typing import Any, List, Literal, Optional
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 ProviderType = Literal["gemini", "groq", "openai"]
@@ -22,10 +23,10 @@ IntentCategoryType = Literal[
 class SupportRunRequest(BaseModel):
     provider: ProviderType = Field(default="gemini")
     text: str = Field(min_length=1, max_length=10000)
-    ticketId: Optional[str] = None
-    title: Optional[str] = None
-    customerName: Optional[str] = None
-    customerEmail: Optional[str] = None
+    ticketId: str | None = None
+    title: str | None = None
+    customerName: str | None = None
+    customerEmail: str | None = None
 
 
 class IntentClassification(BaseModel):
@@ -37,12 +38,12 @@ class IntentClassification(BaseModel):
 
 class DraftResponse(BaseModel):
     reply: str = Field(min_length=1)
-    sources: List[str] = Field(default_factory=list)
+    sources: list[str] = Field(default_factory=list)
     sentiment: SentimentType = Field(default="neutral")
     confidenceScore: float = Field(default=0.8, ge=0.0, le=1.0)
-    intentCategory: Optional[str] = None
-    intentSummary: Optional[str] = None
-    confidenceBreakdown: Optional[str] = None
+    intentCategory: str | None = None
+    intentSummary: str | None = None
+    confidenceBreakdown: str | None = None
 
 
 class KBArticleCreate(BaseModel):
@@ -52,14 +53,14 @@ class KBArticleCreate(BaseModel):
 
 
 class KBArticleUpdate(BaseModel):
-    title: Optional[str] = Field(default=None, min_length=2, max_length=200)
-    category: Optional[Literal["faq", "documentation", "internal", "troubleshooting"]] = None
-    content: Optional[str] = Field(default=None, min_length=5, max_length=50000)
+    title: str | None = Field(default=None, min_length=2, max_length=200)
+    category: Literal["faq", "documentation", "internal", "troubleshooting"] | None = None
+    content: str | None = Field(default=None, min_length=5, max_length=50000)
 
 
 class TicketCreate(BaseModel):
     title: str = Field(min_length=2, max_length=200)
-    customerName: Optional[str] = Field(default=None, max_length=100)
+    customerName: str | None = Field(default=None, max_length=100)
     customerEmail: str = Field(max_length=255)
     status: Literal["open", "pending", "resolved", "escalated"] = Field(default="open")
     text: str = Field(min_length=1, max_length=10000)
@@ -72,5 +73,4 @@ class TicketUpdate(BaseModel):
 class TicketMessageCreate(BaseModel):
     sender: Literal["customer", "agent", "ai"]
     text: str = Field(min_length=1, max_length=10000)
-    resolveTicket: Optional[bool] = False
-
+    resolveTicket: bool | None = False

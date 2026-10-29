@@ -4,12 +4,11 @@ JWT cookie authentication — wire-compatible with the Node.js backend.
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import Request, Response
-from jose import JWTError, jwt
+from jose import jwt
 from pydantic import BaseModel
 
 from app.core.config import Settings, get_settings
@@ -37,8 +36,8 @@ def set_session_cookie(response: Response, user: SessionUser, settings: Settings
         "id": user.id,
         "email": user.email,
         "name": user.name or "",
-        "iat": datetime.now(timezone.utc),
-        "exp": datetime.now(timezone.utc) + timedelta(days=settings.session_jwt_expiry_days),
+        "iat": datetime.now(UTC),
+        "exp": datetime.now(UTC) + timedelta(days=settings.session_jwt_expiry_days),
     }
     token = jwt.encode(payload, settings.session_jwt_secret, algorithm="HS256")
 
@@ -89,4 +88,3 @@ def read_session_cookie(request: Request, settings: Settings | None = None) -> S
     except Exception as e:
         logger.warning("read_session_cookie decode error: %s", e)
         return None
-

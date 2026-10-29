@@ -19,10 +19,7 @@ class RequestIdFilter(logging.Filter):
 
 
 def setup_logging(*, level: str = "INFO") -> None:
-    fmt = (
-        "%(asctime)s | %(levelname)-8s | %(name)s | "
-        "req=%(request_id)s | %(message)s"
-    )
+    fmt = "%(asctime)s | %(levelname)-8s | %(name)s | req=%(request_id)s | %(message)s"
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(logging.Formatter(fmt, datefmt="%Y-%m-%dT%H:%M:%S%z"))
     handler.addFilter(RequestIdFilter())
@@ -35,4 +32,3 @@ def setup_logging(*, level: str = "INFO") -> None:
 
 def new_request_id() -> str:
     return uuid.uuid4().hex[:16]
-

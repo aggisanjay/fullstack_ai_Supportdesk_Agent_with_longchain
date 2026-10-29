@@ -5,15 +5,17 @@ Support desk endpoints handling tickets, knowledge base, analytics, and agent ru
 from __future__ import annotations
 
 import logging
-from typing import Any, List
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agents.graph import SupportAgentGraph
 from app.api.v1.auth import require_auth
 from app.core.config import Settings, get_settings
 from app.core.security import SessionUser
 from app.db.session import get_db
-from app.repositories.db_repository import KBRepository, TicketRepository, TelemetryRepository
+from app.repositories.db_repository import KBRepository, TelemetryRepository, TicketRepository
 from app.schemas.support import (
     KBArticleCreate,
     KBArticleUpdate,
@@ -23,10 +25,8 @@ from app.schemas.support import (
     TicketUpdate,
 )
 from app.services.llm_service import LLMService
-from app.services.pricing_service import PRICING_TABLE
 from app.services.retrieval_service import RetrievalService
 from app.services.search_service import SearchService
-from app.agents.graph import SupportAgentGraph
 
 logger = logging.getLogger(__name__)
 
@@ -173,7 +173,7 @@ async def run_support_agent(
 async def get_articles(
     user: SessionUser = Depends(require_auth),
     db: AsyncSession = Depends(get_db),
-) -> List[dict[str, Any]]:
+) -> list[dict[str, Any]]:
     repo = KBRepository(db)
     arts = await repo.get_all()
     return [
@@ -196,6 +196,7 @@ async def create_article(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     import uuid
+
     repo = KBRepository(db)
     article_id = "kb_" + uuid.uuid4().hex[:8]
     a = await repo.create(article_id, req.title, req.category, req.content)
@@ -258,7 +259,7 @@ async def delete_article(
 async def list_tickets(
     user: SessionUser = Depends(require_auth),
     db: AsyncSession = Depends(get_db),
-) -> List[dict[str, Any]]:
+) -> list[dict[str, Any]]:
     repo = TicketRepository(db)
     tickets = await repo.get_all()
     return [
@@ -399,7 +400,7 @@ async def add_human_reply(
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
-    msg = await repo.add_message(ticket_id, req.sender, req.text)
+    await repo.add_message(ticket_id, req.sender, req.text)
     if req.resolveTicket:
         await repo.update(ticket_id, status="resolved")
 
@@ -541,4 +542,3 @@ async def clear_tickets(
     repo = TicketRepository(db)
     await repo.clear_all()
     return {"message": "All ticket records cleared. Ready for fresh generation.", "tickets": []}
-

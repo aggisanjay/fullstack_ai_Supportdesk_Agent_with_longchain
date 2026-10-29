@@ -8,14 +8,13 @@ from __future__ import annotations
 import logging
 import math
 import uuid
-from typing import Any, List, Optional, Tuple
+
 from pydantic import BaseModel
-from sqlalchemy import select, func, text, delete
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from pgvector.sqlalchemy import Vector
 
 from app.core.config import Settings, get_settings
-from app.db.models import KBArticle, DocumentChunk
+from app.db.models import DocumentChunk, KBArticle
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +54,7 @@ class RetrievalResult(BaseModel):
     score: float
 
 
-def cosine_similarity(v1: List[float], v2: List[float]) -> float:
+def cosine_similarity(v1: list[float], v2: list[float]) -> float:
     dot = sum(a * b for a, b in zip(v1, v2))
     norm_a = math.sqrt(sum(a * a for a in v1))
     norm_b = math.sqrt(sum(b * b for b in v2))
@@ -64,12 +63,12 @@ def cosine_similarity(v1: List[float], v2: List[float]) -> float:
     return dot / (norm_a * norm_b)
 
 
-def chunk_text(content: str, max_chars: int = 500, overlap: int = 50) -> List[str]:
+def chunk_text(content: str, max_chars: int = 500, overlap: int = 50) -> list[str]:
     """Split content into overlapping textual chunks."""
     content = content.strip()
     if len(content) <= max_chars:
         return [content]
-    
+
     chunks = []
     start = 0
     while start < len(content):
@@ -90,7 +89,7 @@ class RetrievalService:
     def __init__(self, settings: Settings | None = None):
         self.settings = settings or get_settings()
 
-    async def embed_text(self, text: str) -> Optional[List[float]]:
+    async def embed_text(self, text: str) -> list[float] | None:
         """Generate 1536-dimensional vector embedding for text using Gemini or OpenAI."""
         text_clean = text.strip()
         if not text_clean:
@@ -117,6 +116,7 @@ class RetrievalService:
         if self.settings.openai_api_key and not self.settings.openai_api_key.startswith("sk-proj-your"):
             try:
                 from openai import AsyncOpenAI
+
                 client = AsyncOpenAI(api_key=self.settings.openai_api_key)
                 res = await client.embeddings.create(
                     model=self.settings.embedding_model,
@@ -129,13 +129,13 @@ class RetrievalService:
 
         return None
 
-    async def index_article(self, db: AsyncSession, article: KBArticle) -> List[DocumentChunk]:
+    async def index_article(self, db: AsyncSession, article: KBArticle) -> list[DocumentChunk]:
         """Index an article by chunking its text and storing pgvector embeddings."""
         # Delete existing chunks for this article
         await db.execute(delete(DocumentChunk).where(DocumentChunk.article_id == article.id))
 
         chunks_text = chunk_text(f"{article.title}. {article.content}")
-        created_chunks: List[DocumentChunk] = []
+        created_chunks: list[DocumentChunk] = []
 
         for idx, chunk_content in enumerate(chunks_text):
             vec = await self.embed_text(chunk_content)
@@ -175,9 +175,7 @@ class RetrievalService:
         await db.commit()
         logger.info(f"Seeded {len(DEFAULT_ARTICLES)} KB articles with pgvector embeddings.")
 
-    async def retrieve_relevant_articles(
-        self, db: AsyncSession, query: str, limit: int = 3
-    ) -> List[RetrievalResult]:
+    async def retrieve_relevant_articles(self, db: AsyncSession, query: str, limit: int = 3) -> list[RetrievalResult]:
         """
         Hybrid pgvector semantic cosine similarity + keyword fallback search across KB articles.
         """
@@ -227,11 +225,7 @@ class RetrievalService:
                 article_scores[art_id] = keyword_score
 
         # 4. Filter and Rank
-        scored = [
-            (score, articles_map[art_id])
-            for art_id, score in article_scores.items()
-            if score >= 0.20
-        ]
+        scored = [(score, articles_map[art_id]) for art_id, score in article_scores.items() if score >= 0.20]
         scored.sort(key=lambda x: x[0], reverse=True)
 
         return [

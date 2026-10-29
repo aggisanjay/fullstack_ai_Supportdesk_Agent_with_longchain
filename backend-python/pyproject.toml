@@ -57,6 +57,12 @@ exclude = ["alembic*", "tests*"]
 target-version = "py312"
 line-length = 120
 
+[tool.ruff.lint]
+ignore = [
+    "B008",   # FastAPI Depends() injection in route signatures
+    "BLE001", # Intentional exception catching for resilient LLM/search fallbacks
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"

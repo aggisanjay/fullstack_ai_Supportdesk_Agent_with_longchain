@@ -1,23 +1,24 @@
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
+
 import pytest
 import pytest_asyncio
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.db.base import Base
-from app.repositories.db_repository import KBRepository, TicketRepository, TelemetryRepository
+from app.repositories.db_repository import KBRepository, TelemetryRepository, TicketRepository
 
 
 @pytest_asyncio.fixture
 async def test_db_session() -> AsyncGenerator[AsyncSession, None]:
     engine = create_async_engine("sqlite+aiosqlite:///:memory:", echo=False)
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
     session_factory = async_sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)
-    
+
     async with session_factory() as session:
         yield session
 
@@ -29,13 +30,13 @@ async def test_db_session() -> AsyncGenerator[AsyncSession, None]:
 @pytest.mark.asyncio
 async def test_kb_repository_crud(test_db_session: AsyncSession) -> None:
     repo = KBRepository(test_db_session)
-    
+
     # 1. Create
     article = await repo.create(
         id="kb_test_1",
         title="OAuth Callback Setup",
         category="documentation",
-        content="Use http://localhost:5000/auth/callback for local testing."
+        content="Use http://localhost:5000/auth/callback for local testing.",
     )
     assert article.id == "kb_test_1"
     assert article.title == "OAuth Callback Setup"
@@ -78,9 +79,7 @@ async def test_ticket_repository_lifecycle(test_db_session: AsyncSession) -> Non
 
     # 2. Add message
     msg = await repo.add_message(
-        ticket_id=ticket.id,
-        sender="customer",
-        text="I am blocked by the OAuth callback URL error."
+        ticket_id=ticket.id, sender="customer", text="I am blocked by the OAuth callback URL error."
     )
     assert msg.id.startswith("msg_")
     assert msg.text == "I am blocked by the OAuth callback URL error."
@@ -89,8 +88,9 @@ async def test_ticket_repository_lifecycle(test_db_session: AsyncSession) -> Non
     msg_ai = await repo.add_message(
         ticket_id=ticket.id,
         sender="ai",
-        text="Please ensure your redirect URI matches http://localhost:5000/auth/callback."
+        text="Please ensure your redirect URI matches http://localhost:5000/auth/callback.",
     )
+    assert msg_ai.id.startswith("msg_")
 
     # 4. Fetch ticket with messages
     fetched = await repo.get_by_id(ticket.id)
@@ -125,4 +125,3 @@ async def test_telemetry_repository(test_db_session: AsyncSession) -> None:
     recent = await repo.get_recent(limit=10)
     assert len(recent) == 1
     assert recent[0].request_id == "req_test_1"
-

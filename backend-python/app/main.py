@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import logging
-
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import app.db.models
 from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
 from app.db.base import Base
-import app.db.models
 from app.db.session import engine
 from app.middleware.request_id import RequestIdMiddleware
 
@@ -23,6 +23,7 @@ async def lifespan(app: FastAPI):
     # Ensure pgvector extension and database schema exist on startup
     try:
         from sqlalchemy import text
+
         from app.db.session import async_session_factory
         from app.services.retrieval_service import RetrievalService
 
@@ -75,4 +76,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-

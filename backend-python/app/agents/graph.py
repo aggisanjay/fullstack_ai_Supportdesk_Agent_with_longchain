@@ -8,7 +8,8 @@ import json
 import logging
 import re
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from app.schemas.support import (
@@ -29,13 +30,13 @@ def parse_json_from_llm(text: str) -> dict[str, Any]:
     clean = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.MULTILINE).strip()
     try:
         return json.loads(clean, strict=False)
-    except Exception:
+    except (json.JSONDecodeError, ValueError):
         match = re.search(r"\{[\s\S]*\}", text)
         if match:
             try:
                 return json.loads(match.group(0), strict=False)
-            except Exception:
-                pass
+            except (json.JSONDecodeError, ValueError) as err:
+                logger.debug("Failed regex-extracted JSON parse: %s", err)
         raise ValueError("Invalid JSON returned by LLM")
 
 
@@ -76,17 +77,17 @@ def extract_search_query(ticket_text: str, intent_summary: str = "") -> str:
 class AgentState(BaseModel):
     ticket_text: str
     preferred_provider: ProviderType
-    intent: Optional[IntentClassification] = None
-    kb_results: List[RetrievalResult] = Field(default_factory=list)
-    search_results: List[TavilyResult] = Field(default_factory=list)
-    search_query: Optional[str] = None
-    draft: Optional[DraftResponse] = None
+    intent: IntentClassification | None = None
+    kb_results: list[RetrievalResult] = Field(default_factory=list)
+    search_results: list[TavilyResult] = Field(default_factory=list)
+    search_query: str | None = None
+    draft: DraftResponse | None = None
     blended_confidence: float = 0.8
     confidence_breakdown: str = ""
-    workflow_steps: List[Dict[str, Any]] = Field(default_factory=list)
-    detailed_steps: List[Dict[str, Any]] = Field(default_factory=list)
-    telemetry: Dict[str, Any] = Field(default_factory=dict)
-    escalation: Optional[Dict[str, Any]] = None
+    workflow_steps: list[dict[str, Any]] = Field(default_factory=list)
+    detailed_steps: list[dict[str, Any]] = Field(default_factory=list)
+    telemetry: dict[str, Any] = Field(default_factory=dict)
+    escalation: dict[str, Any] | None = None
     actual_provider: str = "gemini"
     actual_model: str = "gemini-2.5-flash"
 
@@ -111,7 +112,9 @@ class SupportAgentGraph:
                 requiresWebSearch=False,
                 searchReasoning="Feature requests are evaluated against roadmap.",
             )
-        elif any(w in lower for w in ["error", "bug", "crash", "500", "401", "exception", "failed signature", "mismatch"]):
+        elif any(
+            w in lower for w in ["error", "bug", "crash", "500", "401", "exception", "failed signature", "mismatch"]
+        ):
             return IntentClassification(
                 intentCategory="bug report",
                 intentSummary="Customer reporting an unexpected error or technical integration crash.",
@@ -153,36 +156,44 @@ class SupportAgentGraph:
         ]
         if kb_results:
             top = kb_results[0]
-            sections.extend([
-                f"### Resolution: {top.title}\n",
-                f"{top.content}\n",
-                "### Recommended Actions:",
-                "- Review the configuration documented above.",
-                "- Verify that your request parameters and headers match the required specification.",
-                "- Re-test the endpoint or workflow.\n",
-            ])
+            sections.extend(
+                [
+                    f"### Resolution: {top.title}\n",
+                    f"{top.content}\n",
+                    "### Recommended Actions:",
+                    "- Review the configuration documented above.",
+                    "- Verify that your request parameters and headers match the required specification.",
+                    "- Re-test the endpoint or workflow.\n",
+                ]
+            )
         elif search_results:
             top = search_results[0]
-            sections.extend([
-                "### Reference Details:\n",
-                f"{top.snippet}\n",
-                f"For full technical documentation, please consult: {top.url}\n",
-                "### Next Steps:",
-                "- Compare your integration implementation with the reference documentation above.",
-                "- Ensure all dependencies and credentials are up to date.\n",
-            ])
+            sections.extend(
+                [
+                    "### Reference Details:\n",
+                    f"{top.snippet}\n",
+                    f"For full technical documentation, please consult: {top.url}\n",
+                    "### Next Steps:",
+                    "- Compare your integration implementation with the reference documentation above.",
+                    "- Ensure all dependencies and credentials are up to date.\n",
+                ]
+            )
         else:
-            sections.extend([
-                "Our engineering team has received your ticket and is actively reviewing the request.\n",
-                "### Diagnostic Checklist:",
-                "- Please ensure any relevant error logs or request IDs are captured.",
-                "- If you have a minimal reproducible code snippet, please reply with it to expedite resolution.\n",
-            ])
+            sections.extend(
+                [
+                    "Our engineering team has received your ticket and is actively reviewing the request.\n",
+                    "### Diagnostic Checklist:",
+                    "- Please ensure any relevant error logs or request IDs are captured.",
+                    "- If you have a minimal reproducible code snippet, please reply with it to expedite resolution.\n",
+                ]
+            )
 
-        sections.extend([
-            "Please let us know if this helps or if you need any additional assistance. We're here to help!\n",
-            "Best regards,\nSupport Engineering Team",
-        ])
+        sections.extend(
+            [
+                "Please let us know if this helps or if you need any additional assistance. We're here to help!\n",
+                "Best regards,\nSupport Engineering Team",
+            ]
+        )
         return "\n".join(sections)
 
     async def synthesize_reply(
@@ -198,7 +209,7 @@ class SupportAgentGraph:
 
         kb_formatted = (
             "\n\n".join(
-                f"#{i+1} [{getattr(k, 'category', 'general')}] {k.title} (Relevance: {(getattr(k, 'score', 0.8) * 100):.0f}%)\n{k.content}"
+                f"#{i + 1} [{getattr(k, 'category', 'general')}] {k.title} (Relevance: {(getattr(k, 'score', 0.8) * 100):.0f}%)\n{k.content}"
                 for i, k in enumerate(kb_results)
             )
             if has_kb
@@ -206,10 +217,7 @@ class SupportAgentGraph:
         )
 
         search_formatted = (
-            "\n\n".join(
-                f"#{i+1} {r.title} ({r.url}):\n{r.snippet}"
-                for i, r in enumerate(search_results)
-            )
+            "\n\n".join(f"#{i + 1} {r.title} ({r.url}):\n{r.snippet}" for i, r in enumerate(search_results))
             if has_search
             else "none"
         )
@@ -274,7 +282,11 @@ class SupportAgentGraph:
             logger.warning("LLM synthesis error, falling back to structured template: %s", e)
             fallback_text = self._build_fallback_reply(text, intent, kb_results, search_results)
             fallback_sources = [r.url for r in search_results if getattr(r, "url", None)]
-            fallback_sentiment = "frustrated" if any(w in text.lower() for w in ["angry", "frustrated", "urgent", "broken", "critical", "blocked"]) else "neutral"
+            fallback_sentiment = (
+                "frustrated"
+                if any(w in text.lower() for w in ["angry", "frustrated", "urgent", "broken", "critical", "blocked"])
+                else "neutral"
+            )
             return fallback_text, fallback_sources, fallback_sentiment, 0.75, provider, "fallback-synthesizer"
 
     async def execute(self, text: str, provider: ProviderType, db: Any) -> AgentState:
@@ -286,11 +298,13 @@ class SupportAgentGraph:
         state.intent = self.classify_intent(text)
         intent_ms = round((time.perf_counter() - intent_start) * 1000, 1)
 
-        state.workflow_steps.append({
-            "agent": "Intent Agent",
-            "status": "completed",
-            "output": f"[{state.intent.intentCategory}] {state.intent.intentSummary}",
-        })
+        state.workflow_steps.append(
+            {
+                "agent": "Intent Agent",
+                "status": "completed",
+                "output": f"[{state.intent.intentCategory}] {state.intent.intentSummary}",
+            }
+        )
 
         # 2. Knowledge Base Retrieval
         kb_start = time.perf_counter()
@@ -299,17 +313,21 @@ class SupportAgentGraph:
 
         if state.kb_results:
             top_art = state.kb_results[0]
-            state.workflow_steps.append({
-                "agent": "Knowledge Agent",
-                "status": "completed",
-                "output": f"Retrieved article '{top_art.title}' ({(top_art.score * 100):.0f}% match).",
-            })
+            state.workflow_steps.append(
+                {
+                    "agent": "Knowledge Agent",
+                    "status": "completed",
+                    "output": f"Retrieved article '{top_art.title}' ({(top_art.score * 100):.0f}% match).",
+                }
+            )
         else:
-            state.workflow_steps.append({
-                "agent": "Knowledge Agent",
-                "status": "completed",
-                "output": "No internal knowledge articles matched query.",
-            })
+            state.workflow_steps.append(
+                {
+                    "agent": "Knowledge Agent",
+                    "status": "completed",
+                    "output": "No internal knowledge articles matched query.",
+                }
+            )
 
         # 3. Web Search Grounding
         search_start = time.perf_counter()
@@ -319,21 +337,25 @@ class SupportAgentGraph:
             state.search_query = extract_search_query(text, state.intent.intentSummary)
             state.search_results = await self.search_service.search(state.search_query)
             search_ms = round((time.perf_counter() - search_start) * 1000, 1)
-            state.workflow_steps.append({
-                "agent": "Search Agent",
-                "status": "completed" if state.search_results else "completed",
-                "output": (
-                    f"Executed live search for '{state.search_query}' ({len(state.search_results)} URLs retrieved from Tavily, {search_ms}ms)."
-                    if state.search_results
-                    else f"Executed live search for '{state.search_query}', but returned 0 results ({search_ms}ms)."
-                ),
-            })
+            state.workflow_steps.append(
+                {
+                    "agent": "Search Agent",
+                    "status": "completed",
+                    "output": (
+                        f"Executed live search for '{state.search_query}' ({len(state.search_results)} URLs retrieved from Tavily, {search_ms}ms)."
+                        if state.search_results
+                        else f"Executed live search for '{state.search_query}', but returned 0 results ({search_ms}ms)."
+                    ),
+                }
+            )
         else:
-            state.workflow_steps.append({
-                "agent": "Search Agent",
-                "status": "completed",
-                "output": f"Skipped external web search. {state.intent.searchReasoning}",
-            })
+            state.workflow_steps.append(
+                {
+                    "agent": "Search Agent",
+                    "status": "completed",
+                    "output": f"Skipped external web search. {state.intent.searchReasoning}",
+                }
+            )
 
         # 4. Synthesizer with LLM invocation & fallback
         model_start = time.perf_counter()
@@ -389,11 +411,13 @@ class SupportAgentGraph:
             confidenceBreakdown=state.confidence_breakdown,
         )
 
-        state.workflow_steps.append({
-            "agent": "Response Agent",
-            "status": "completed",
-            "output": f"Synthesized reply with sentiment '{sentiment}' and blended confidence {(blended * 100):.0f}%.",
-        })
+        state.workflow_steps.append(
+            {
+                "agent": "Response Agent",
+                "status": "completed",
+                "output": f"Synthesized reply with sentiment '{sentiment}' and blended confidence {(blended * 100):.0f}%.",
+            }
+        )
 
         # Escalation check: only escalate if confidence < 0.70 or customer sentiment is critical / frustrated
         is_escalated = (blended < 0.70) or (sentiment in ["frustrated", "critical"])
@@ -471,14 +495,20 @@ class SupportAgentGraph:
                 "id": f"step_search_{int(time.time() * 1000) + 3}",
                 "name": "Web Search Grounding",
                 "stage": "web_search",
-                "status": "completed" if (do_web_search and state.search_results) else ("skipped" if not do_web_search else "failed"),
+                "status": "completed"
+                if (do_web_search and state.search_results)
+                else ("skipped" if not do_web_search else "failed"),
                 "agent": "Search Agent",
                 "durationMs": search_ms,
                 "timestamp": state.telemetry["timestamp"],
                 "summary": (
                     f"Live search retrieved {len(state.search_results)} source URL(s) from Tavily ({search_ms}ms)."
                     if (do_web_search and state.search_results)
-                    else (f"Skipped external web search: {state.intent.searchReasoning}" if not do_web_search else f"Search executed for '{state.search_query}' but returned 0 results.")
+                    else (
+                        f"Skipped external web search: {state.intent.searchReasoning}"
+                        if not do_web_search
+                        else f"Search executed for '{state.search_query}' but returned 0 results."
+                    )
                 ),
                 "details": {
                     "searchExecuted": do_web_search,
@@ -519,4 +549,3 @@ class SupportAgentGraph:
         ]
 
         return state
-

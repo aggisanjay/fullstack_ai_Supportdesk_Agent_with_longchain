@@ -25,4 +25,3 @@ async def health_check() -> dict[str, Any]:
         "version": "0.1.0",
         "timestamp": time.time(),
     }
-
