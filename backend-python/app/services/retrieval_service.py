@@ -5,45 +5,20 @@ Natively indexes DocumentChunks and retrieves KBArticles using cosine vector dis
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import math
 import uuid
+from typing import Literal
 
 from pydantic import BaseModel
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.db.models import DocumentChunk, KBArticle
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_ARTICLES = [
-    {
-        "id": "kb_1",
-        "title": "How to retrieve a Scalekit client secret",
-        "category": "faq",
-        "content": "To retrieve your client secret in Scalekit, log in to the Scalekit Admin Dashboard, select your environment (e.g., Development or Production), navigate to 'API Settings' or 'Client Credentials', and click 'Generate Secret'. Make sure to copy it immediately, as it will only be displayed once.",
-    },
-    {
-        "id": "kb_2",
-        "title": "OAuth Redirect URI Setup Guide",
-        "category": "documentation",
-        "content": "When setting up Single Sign-On (SSO) or OAuth, you must configure a Redirect URI. The redirect URI is where the authorization server sends the user after successful authentication. For local testing, use: http://localhost:5000/auth/callback. In production, ensure this is set to your HTTPS backend endpoint and matches exactly.",
-    },
-    {
-        "id": "kb_3",
-        "title": "LangGraph Agent Troubleshooting Guidelines",
-        "category": "internal",
-        "content": "If the LangGraph support agent fails with status 422 (sources are empty or not allowed), check if a web search was performed via Tavily. The agent's response format schema requires that any source URL returned must be a subset of the Tavily search results. If the user explicitly asks for docs or oauth features, the web search will trigger, so ensure TAVILY_API_KEY is active.",
-    },
-    {
-        "id": "kb_4",
-        "title": "Resolving Webhook Signature Failures",
-        "category": "troubleshooting",
-        "content": "Webhook verification errors usually happen when the payload is modified or parsed before hashing. Verify that: 1. You are using the raw request body buffer to compute the HMAC-SHA256 signature. 2. The signing secret matches the secret from your developer portal. 3. The signature algorithm is SHA-256.",
-    },
-]
 
 
 class RetrievalResult(BaseModel):
@@ -52,6 +27,7 @@ class RetrievalResult(BaseModel):
     category: str
     content: str
     score: float
+    retrieval_method: Literal["semantic", "hybrid", "keyword_fallback"] = "semantic"
 
 
 def cosine_similarity(v1: list[float], v2: list[float]) -> float:
@@ -73,7 +49,6 @@ def chunk_text(content: str, max_chars: int = 500, overlap: int = 50) -> list[st
     start = 0
     while start < len(content):
         end = min(len(content), start + max_chars)
-        # Try breaking on period or newline if possible
         if end < len(content):
             last_period = content.rfind(". ", start, end)
             if last_period > start + (max_chars // 2):
@@ -90,27 +65,36 @@ class RetrievalService:
         self.settings = settings or get_settings()
 
     async def embed_text(self, text: str) -> list[float] | None:
-        """Generate 1536-dimensional vector embedding for text using Gemini or OpenAI."""
+        """Generate 1536-dimensional vector embedding for text using Gemini or OpenAI.
+        Non-blocking: moves synchronous API client operations off the asyncio event loop.
+        """
         text_clean = text.strip()
         if not text_clean:
             return None
 
-        # 1. Try Google Gemini Embeddings
+        # 1. Try Google Gemini Embeddings (offloaded to threadpool)
         if self.settings.gemini_api_key:
             try:
-                from google import genai
-                from google.genai import types
 
-                client = genai.Client(api_key=self.settings.gemini_api_key)
-                res = client.models.embed_content(
-                    model="gemini-embedding-001",
-                    contents=text_clean,
-                    config=types.EmbedContentConfig(output_dimensionality=1536),
-                )
-                if res.embeddings and len(res.embeddings) > 0:
-                    return res.embeddings[0].values
+                def _sync_gemini_embed() -> list[float] | None:
+                    from google import genai
+                    from google.genai import types
+
+                    client = genai.Client(api_key=self.settings.gemini_api_key)
+                    res = client.models.embed_content(
+                        model="gemini-embedding-001",
+                        contents=text_clean,
+                        config=types.EmbedContentConfig(output_dimensionality=1536),
+                    )
+                    if res.embeddings and len(res.embeddings) > 0:
+                        return list(res.embeddings[0].values)
+                    return None
+
+                gemini_vec = await asyncio.to_thread(_sync_gemini_embed)
+                if gemini_vec:
+                    return gemini_vec
             except Exception as e:
-                logger.warning(f"Gemini embedding error: {e}")
+                logger.warning("Gemini embedding error: %s", e)
 
         # 2. Try OpenAI Embeddings if key configured
         if self.settings.openai_api_key and not self.settings.openai_api_key.startswith("sk-proj-your"):
@@ -123,74 +107,72 @@ class RetrievalService:
                     input=text_clean,
                 )
                 if res.data and len(res.data) > 0:
-                    return res.data[0].embedding
+                    return list(res.data[0].embedding)
             except Exception as e:
-                logger.warning(f"OpenAI embedding error: {e}")
+                logger.warning("OpenAI embedding error: %s", e)
 
         return None
 
     async def index_article(self, db: AsyncSession, article: KBArticle) -> list[DocumentChunk]:
-        """Index an article by chunking its text and storing pgvector embeddings."""
-        # Delete existing chunks for this article
+        """Index an article by chunking its text and storing pgvector embeddings.
+        Clears existing chunks first to allow safe re-indexing without duplicates.
+        Raises RuntimeError if embeddings cannot be generated.
+        """
+        # Delete existing chunks for this article to allow safe re-indexing
         await db.execute(delete(DocumentChunk).where(DocumentChunk.article_id == article.id))
 
         chunks_text = chunk_text(f"{article.title}. {article.content}")
+        if not chunks_text:
+            return []
+
         created_chunks: list[DocumentChunk] = []
+        failed_embeddings = 0
 
         for idx, chunk_content in enumerate(chunks_text):
             vec = await self.embed_text(chunk_content)
+            if vec is None:
+                failed_embeddings += 1
+
             chunk = DocumentChunk(
                 id="chk_" + uuid.uuid4().hex[:12],
                 article_id=article.id,
                 chunk_index=idx,
                 content=chunk_content,
                 embedding=vec,
-                chunk_metadata={"title": article.title, "category": article.category},
+                chunk_metadata={
+                    "title": article.title,
+                    "category": article.category,
+                    "has_embedding": vec is not None,
+                },
             )
             db.add(chunk)
             created_chunks.append(chunk)
 
         await db.flush()
+
+        if failed_embeddings > 0 and failed_embeddings == len(chunks_text):
+            raise RuntimeError(
+                f"Indexing failed for article '{article.title}': Embedding provider failed to generate vectors. "
+                "Verify GEMINI_API_KEY or OPENAI_API_KEY configuration."
+            )
+
         return created_chunks
 
-    async def seed_default_articles_if_empty(self, db: AsyncSession) -> None:
-        """Seed initial knowledge base articles with pgvector chunks if table is empty."""
-        count_res = await db.execute(select(func.count(KBArticle.id)))
-        current_count = count_res.scalar() or 0
-        if current_count > 0:
-            return
-
-        logger.info("Seeding default knowledge base articles with pgvector embeddings...")
-        for art_data in DEFAULT_ARTICLES:
-            article = KBArticle(
-                id=art_data["id"],
-                title=art_data["title"],
-                category=art_data["category"],
-                content=art_data["content"],
-            )
-            db.add(article)
-            await db.flush()
-            await self.index_article(db, article)
-
-        await db.commit()
-        logger.info(f"Seeded {len(DEFAULT_ARTICLES)} KB articles with pgvector embeddings.")
-
     async def retrieve_relevant_articles(self, db: AsyncSession, query: str, limit: int = 3) -> list[RetrievalResult]:
+        """Hybrid pgvector semantic cosine similarity + explicit keyword fallback search across KB articles.
+        Returns empty list when knowledge base is empty.
         """
-        Hybrid pgvector semantic cosine similarity + keyword fallback search across KB articles.
-        """
-        # Ensure default articles are seeded if table is empty
-        await self.seed_default_articles_if_empty(db)
-
-        # 1. Fetch all articles for keyword scoring and metadata lookup
+        # Fetch all articles for lookup; return empty list immediately if database is empty
         all_res = await db.execute(select(KBArticle))
         articles_map = {art.id: art for art in all_res.scalars().all()}
         if not articles_map:
+            logger.debug("Knowledge base is empty. Returning 0 results.")
             return []
 
         article_scores: dict[str, float] = {}
+        retrieval_methods: dict[str, Literal["semantic", "hybrid", "keyword_fallback"]] = {}
 
-        # 2. pgvector Semantic Search
+        # 1. pgvector Semantic Search
         query_vec = await self.embed_text(query)
         if query_vec is not None:
             try:
@@ -204,14 +186,16 @@ class RetrievalService:
                 )
                 chunk_results = (await db.execute(stmt)).all()
                 for chunk, art, sim in chunk_results:
-                    # pgvector cosine similarity ranges roughly between 0.0 and 1.0
                     val = max(0.0, float(sim))
                     if art.id not in article_scores or val > article_scores[art.id]:
                         article_scores[art.id] = val
+                        retrieval_methods[art.id] = "semantic"
             except Exception as e:
-                logger.warning(f"pgvector query error: {e}")
+                logger.warning("pgvector cosine distance query error: %s", e)
+        else:
+            logger.info("Semantic embedding vector unavailable for query; falling back to keyword matching.")
 
-        # 3. Token Overlap Keyword Matching (Hybrid boost / fallback)
+        # 2. Token Overlap Keyword Matching
         query_words = set(query.lower().split())
         for art_id, art in articles_map.items():
             text_body = f"{art.title} {art.content}".lower()
@@ -221,11 +205,17 @@ class RetrievalService:
             if art_id in article_scores:
                 # Blend 70% vector + 30% keyword
                 article_scores[art_id] = min(0.99, (0.70 * article_scores[art_id]) + (0.30 * keyword_score))
+                retrieval_methods[art_id] = "hybrid"
             elif keyword_score > 0.15:
                 article_scores[art_id] = keyword_score
+                retrieval_methods[art_id] = "keyword_fallback"
 
-        # 4. Filter and Rank
-        scored = [(score, articles_map[art_id]) for art_id, score in article_scores.items() if score >= 0.20]
+        # 3. Filter and Rank
+        scored = [
+            (score, articles_map[art_id], retrieval_methods.get(art_id, "semantic"))
+            for art_id, score in article_scores.items()
+            if score >= 0.20
+        ]
         scored.sort(key=lambda x: x[0], reverse=True)
 
         return [
@@ -235,6 +225,7 @@ class RetrievalService:
                 category=art.category,
                 content=art.content,
                 score=round(s, 2),
+                retrieval_method=method,
             )
-            for s, art in scored[:limit]
+            for s, art, method in scored[:limit]
         ]

@@ -11,8 +11,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.graph import SupportAgentGraph
-from app.api.v1.auth import require_auth
+from app.api.v1.auth import require_admin, require_agent_or_admin, require_auth
 from app.core.config import Settings, get_settings
+from app.core.exceptions import ForbiddenError
 from app.core.security import SessionUser
 from app.db.session import get_db
 from app.repositories.db_repository import KBRepository, TelemetryRepository, TicketRepository
@@ -192,7 +193,7 @@ async def get_articles(
 @router.post("/kb", status_code=201)
 async def create_article(
     req: KBArticleCreate,
-    user: SessionUser = Depends(require_auth),
+    user: SessionUser = Depends(require_agent_or_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     import uuid
@@ -200,16 +201,19 @@ async def create_article(
     repo = KBRepository(db)
     article_id = "kb_" + uuid.uuid4().hex[:8]
     a = await repo.create(article_id, req.title, req.category, req.content)
+    indexing_status = "indexed"
     try:
         retrieval = RetrievalService()
         await retrieval.index_article(db, a)
     except Exception as e:
         logger.warning(f"Failed to auto-index article chunks: {e}")
+        indexing_status = f"failed: {e}"
     return {
         "id": a.id,
         "title": a.title,
         "category": a.category,
         "content": a.content,
+        "indexingStatus": indexing_status,
         "createdAt": a.created_at.isoformat() if a.created_at else "",
     }
 
@@ -218,23 +222,26 @@ async def create_article(
 async def update_article(
     article_id: str,
     req: KBArticleUpdate,
-    user: SessionUser = Depends(require_auth),
+    user: SessionUser = Depends(require_agent_or_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     repo = KBRepository(db)
     a = await repo.update(article_id, **req.model_dump(exclude_unset=True))
     if not a:
         raise HTTPException(status_code=404, detail="Article not found")
+    indexing_status = "indexed"
     try:
         retrieval = RetrievalService()
         await retrieval.index_article(db, a)
     except Exception as e:
         logger.warning(f"Failed to re-index article chunks: {e}")
+        indexing_status = f"failed: {e}"
     return {
         "id": a.id,
         "title": a.title,
         "category": a.category,
         "content": a.content,
+        "indexingStatus": indexing_status,
         "updatedAt": a.updated_at.isoformat() if a.updated_at else "",
     }
 
@@ -242,7 +249,7 @@ async def update_article(
 @router.delete("/kb/{article_id}")
 async def delete_article(
     article_id: str,
-    user: SessionUser = Depends(require_auth),
+    user: SessionUser = Depends(require_agent_or_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, bool]:
     repo = KBRepository(db)
@@ -261,7 +268,10 @@ async def list_tickets(
     db: AsyncSession = Depends(get_db),
 ) -> list[dict[str, Any]]:
     repo = TicketRepository(db)
-    tickets = await repo.get_all()
+    if user.role == "customer":
+        tickets = await repo.get_by_customer_email(user.email)
+    else:
+        tickets = await repo.get_all()
     return [
         {
             "id": t.id,
@@ -308,6 +318,8 @@ async def get_ticket(
     t = await repo.get_by_id(ticket_id)
     if not t:
         raise HTTPException(status_code=404, detail="Ticket not found")
+    if user.role == "customer" and t.customer_email != user.email:
+        raise ForbiddenError("Access denied: You are not authorized to view this ticket")
     return {
         "id": t.id,
         "title": t.title,
@@ -346,10 +358,12 @@ async def create_manual_ticket(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     repo = TicketRepository(db)
+    customer_email = req.customerEmail or user.email
+    customer_name = req.customerName or user.name or "Customer"
     t = await repo.create(
         title=req.title,
-        customer_name=req.customerName or "Customer",
-        customer_email=req.customerEmail,
+        customer_name=customer_name,
+        customer_email=customer_email,
         status=req.status,
         sentiment="neutral",
         intent_category="general",
@@ -382,9 +396,13 @@ async def update_ticket_status(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     repo = TicketRepository(db)
-    t = await repo.update(ticket_id, status=req.status)
-    if not t:
+    existing = await repo.get_by_id(ticket_id)
+    if not existing:
         raise HTTPException(status_code=404, detail="Ticket not found")
+    if user.role == "customer":
+        raise ForbiddenError("Access denied: Only support agents can update ticket status")
+
+    t = await repo.update(ticket_id, status=req.status)
     return {"id": t.id, "status": t.status}
 
 
@@ -400,8 +418,14 @@ async def add_human_reply(
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
+    if user.role == "customer":
+        if ticket.customer_email != user.email:
+            raise ForbiddenError("Access denied: You can only reply to your own tickets")
+        if req.sender != "customer":
+            raise ForbiddenError("Access denied: Customers cannot send agent replies")
+
     await repo.add_message(ticket_id, req.sender, req.text)
-    if req.resolveTicket:
+    if req.resolveTicket and user.role != "customer":
         await repo.update(ticket_id, status="resolved")
 
     ticket = await repo.get_by_id(ticket_id)
@@ -425,7 +449,7 @@ async def add_human_reply(
 
 @router.get("/analytics")
 async def get_analytics(
-    user: SessionUser = Depends(require_auth),
+    user: SessionUser = Depends(require_agent_or_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     repo = TicketRepository(db)
@@ -458,7 +482,7 @@ async def get_analytics(
 
 @router.get("/metrics")
 async def get_metrics(
-    user: SessionUser = Depends(require_auth),
+    user: SessionUser = Depends(require_agent_or_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     repo = TelemetryRepository(db)
@@ -536,7 +560,7 @@ async def get_providers(
 
 @router.post("/tickets/clear")
 async def clear_tickets(
-    user: SessionUser = Depends(require_auth),
+    user: SessionUser = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     repo = TicketRepository(db)

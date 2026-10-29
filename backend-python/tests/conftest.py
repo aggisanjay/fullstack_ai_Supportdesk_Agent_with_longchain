@@ -73,7 +73,58 @@ async def client(app_with_test_db) -> AsyncGenerator[AsyncClient, None]:
 async def auth_client(client: AsyncClient) -> AsyncClient:
     login_resp = await client.post(
         "/auth/e2e/login",
-        json={"email": "qa@test.local", "name": "QA Tester", "id": "usr_qa_test"},
+        json={"email": "qa@test.local", "name": "QA Tester", "id": "usr_qa_test", "role": "agent"},
     )
     assert login_resp.status_code == 200
     return client
+
+
+@pytest_asyncio.fixture
+async def customer_client(app_with_test_db) -> AsyncGenerator[AsyncClient, None]:
+    transport = ASGITransport(app=app_with_test_db)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
+        login_resp = await ac.post(
+            "/auth/e2e/login",
+            json={
+                "email": "customer_alice@example.com",
+                "name": "Alice Customer",
+                "id": "usr_cust_alice",
+                "role": "customer",
+            },
+        )
+        assert login_resp.status_code == 200
+        yield ac
+
+
+@pytest_asyncio.fixture
+async def other_customer_client(app_with_test_db) -> AsyncGenerator[AsyncClient, None]:
+    transport = ASGITransport(app=app_with_test_db)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
+        login_resp = await ac.post(
+            "/auth/e2e/login",
+            json={
+                "email": "customer_bob@example.com",
+                "name": "Bob Customer",
+                "id": "usr_cust_bob",
+                "role": "customer",
+            },
+        )
+        assert login_resp.status_code == 200
+        yield ac
+
+
+@pytest_asyncio.fixture
+async def admin_client(app_with_test_db) -> AsyncGenerator[AsyncClient, None]:
+    transport = ASGITransport(app=app_with_test_db)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
+        login_resp = await ac.post(
+            "/auth/e2e/login",
+            json={
+                "email": "admin@company.com",
+                "name": "System Administrator",
+                "id": "usr_admin_root",
+                "role": "admin",
+            },
+        )
+        assert login_resp.status_code == 200
+        yield ac

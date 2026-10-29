@@ -7,7 +7,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -70,6 +70,25 @@ class Settings(BaseSettings):
     llm_timeout_seconds: int = Field(default=30, description="LLM provider call timeout")
     max_tool_calls_per_run: int = Field(default=8, description="Agent tool-call limit per run")
     max_output_tokens: int = Field(default=2048, description="Max tokens in LLM response")
+
+    @model_validator(mode="after")
+    def validate_production_settings(self) -> Settings:
+        if self.node_env == "production":
+            insecure_defaults = {
+                "default_dev_secret_jwt_key_32bytes!",
+                "super_secure_production_secret_key_32bytes_min!",
+                "secret",
+                "changeme",
+            }
+            if (
+                not self.session_jwt_secret
+                or self.session_jwt_secret in insecure_defaults
+                or len(self.session_jwt_secret) < 32
+            ):
+                raise ValueError(
+                    "A strong, non-default SESSION_JWT_SECRET (at least 32 characters) must be configured in production."
+                )
+        return self
 
     @property
     def is_production(self) -> bool:

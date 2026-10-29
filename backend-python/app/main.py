@@ -11,7 +11,6 @@ from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
-from app.db.base import Base
 from app.db.session import engine
 from app.middleware.request_id import RequestIdMiddleware
 
@@ -20,23 +19,26 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure pgvector extension and database schema exist on startup
+    settings = get_settings()
+    # Verify database connectivity on startup — fail fast if unreachable
     try:
         from sqlalchemy import text
 
-        from app.db.session import async_session_factory
-        from app.services.retrieval_service import RetrievalService
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1;"))
+        logger.info("Database connection verified successfully.")
 
-        async with engine.begin() as conn:
-            await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
-            await conn.run_sync(Base.metadata.create_all)
-
-        async with async_session_factory() as session:
-            retrieval = RetrievalService()
-            await retrieval.seed_default_articles_if_empty(session)
-        logger.info("Database schema synchronized and pgvector KB articles indexed.")
+        # In local development only, ensure vector extension is available
+        if settings.is_development:
+            try:
+                async with engine.begin() as conn:
+                    await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+            except Exception as e:
+                logger.debug("Local pgvector extension notice: %s", e)
     except Exception as e:
-        logger.warning("Database schema auto-sync notice: %s", e)
+        logger.error("CRITICAL: Failed to connect to database on startup: %s", e)
+        raise
+
     yield
     await engine.dispose()
 

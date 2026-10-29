@@ -20,7 +20,9 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.database_url_sync)
+current_url = config.get_main_option("sqlalchemy.url")
+if not current_url or current_url.startswith("driver://"):
+    config.set_main_option("sqlalchemy.url", settings.database_url_sync)
 
 
 def run_migrations_offline() -> None:
@@ -45,7 +47,13 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_async_migrations() -> None:
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = settings.database_url
+    url = config.get_main_option("sqlalchemy.url")
+
+    # If default or sync URL configured, use settings.database_url
+    if not url or url.startswith("driver://") or url == settings.database_url_sync:
+        url = settings.database_url
+
+    configuration["sqlalchemy.url"] = url
     connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",

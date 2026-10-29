@@ -62,6 +62,15 @@ class TicketRepository:
         )
         return list(result.scalars().all())
 
+    async def get_by_customer_email(self, customer_email: str) -> list[Ticket]:
+        result = await self.db.execute(
+            select(Ticket)
+            .options(selectinload(Ticket.messages))
+            .where(Ticket.customer_email == customer_email)
+            .order_by(Ticket.created_at.desc())
+        )
+        return list(result.scalars().all())
+
     async def get_by_id(self, ticket_id: str) -> Ticket | None:
         result = await self.db.execute(
             select(Ticket).options(selectinload(Ticket.messages)).where(Ticket.id == ticket_id)

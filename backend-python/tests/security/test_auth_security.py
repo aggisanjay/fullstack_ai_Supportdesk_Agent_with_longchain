@@ -56,3 +56,39 @@ async def test_e2e_login_disabled_in_production(client: AsyncClient) -> None:
         assert resp.status_code == 401
     finally:
         settings.node_env = original_env
+
+
+@pytest.mark.asyncio
+async def test_oauth_callback_rejects_missing_state(client: AsyncClient) -> None:
+    resp = await client.get("/auth/callback?code=some_auth_code")
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_oauth_callback_rejects_mismatched_state(client: AsyncClient) -> None:
+    client.cookies.set("sp_oauth_state", "expected_state_123")
+    resp = await client.get("/auth/callback?code=some_auth_code&state=different_state_456")
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_oauth_callback_rejects_missing_code(client: AsyncClient) -> None:
+    client.cookies.set("sp_oauth_state", "valid_state_123")
+    resp = await client.get("/auth/callback?state=valid_state_123")
+    assert resp.status_code == 401
+
+
+def test_production_rejects_insecure_default_signing_secret() -> None:
+    from app.core.config import Settings
+
+    with pytest.raises(ValueError, match="strong, non-default SESSION_JWT_SECRET"):
+        Settings(
+            node_env="production",
+            session_jwt_secret="default_dev_secret_jwt_key_32bytes!",
+        )
+
+    with pytest.raises(ValueError, match="strong, non-default SESSION_JWT_SECRET"):
+        Settings(
+            node_env="production",
+            session_jwt_secret="too_short_for_prod_20char",
+        )

@@ -43,6 +43,15 @@ jobs:
         working-directory: backend-python
         run: |
           ruff check .
+          ruff format --check .
+
+      - name: Run Alembic Migrations against PostgreSQL/pgvector
+        working-directory: backend-python
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:postgrespassword@localhost:5432/supportdesk_test
+          DATABASE_URL_SYNC: postgresql://postgres:postgrespassword@localhost:5432/supportdesk_test
+        run: |
+          alembic upgrade head
 
       - name: Run Pytest Test Suite
         working-directory: backend-python
@@ -50,6 +59,7 @@ jobs:
           NODE_ENV: test
           SESSION_JWT_SECRET: test_secret_key_32bytes_minimum_length!
           DATABASE_URL: postgresql+asyncpg://postgres:postgrespassword@localhost:5432/supportdesk_test
+          E2E_TEST_MODE: "true"
         run: |
           pytest -v
 
@@ -70,5 +80,6 @@ jobs:
 
       - name: Build client production bundles
         working-directory: client
+        env:
+          VITE_BACKEND_URL: http://localhost:5000
         run: npm run build
-

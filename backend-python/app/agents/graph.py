@@ -1,5 +1,7 @@
 """
-LangGraph Multi-Agent Support Orchestrator.
+Genuine LangGraph Multi-Agent Support Orchestrator.
+Builds and executes an explicit LangGraph StateGraph with typed state,
+registered tools, conditional routing, guardrails, and telemetry.
 """
 
 from __future__ import annotations
@@ -8,9 +10,10 @@ import json
 import logging
 import re
 import time
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from langgraph.graph import END, START, StateGraph
+from typing_extensions import TypedDict
 
 from app.schemas.support import (
     DraftResponse,
@@ -74,22 +77,114 @@ def extract_search_query(ticket_text: str, intent_summary: str = "") -> str:
     return cleaned[:100] if cleaned else ticket_text[:80]
 
 
-class AgentState(BaseModel):
+# ── 1. TYPED LANGGRAPH STATE ─────────────────────────────────────────────────
+
+
+class SupportGraphState(TypedDict):
     ticket_text: str
     preferred_provider: ProviderType
-    intent: IntentClassification | None = None
-    kb_results: list[RetrievalResult] = Field(default_factory=list)
-    search_results: list[TavilyResult] = Field(default_factory=list)
-    search_query: str | None = None
-    draft: DraftResponse | None = None
-    blended_confidence: float = 0.8
-    confidence_breakdown: str = ""
-    workflow_steps: list[dict[str, Any]] = Field(default_factory=list)
-    detailed_steps: list[dict[str, Any]] = Field(default_factory=list)
-    telemetry: dict[str, Any] = Field(default_factory=dict)
-    escalation: dict[str, Any] | None = None
-    actual_provider: str = "gemini"
-    actual_model: str = "gemini-2.5-flash"
+    db: Any
+
+    # Intent
+    intent_category: str
+    intent_summary: str
+    requires_web_search: bool
+    search_reasoning: str
+
+    # Tools & Evidence
+    kb_results: list[dict[str, Any]]
+    search_results: list[dict[str, Any]]
+    search_query: str | None
+    tool_executions: list[dict[str, Any]]
+    tool_call_count: int
+
+    # Synthesis Output
+    reply: str
+    sources: list[str]
+    sentiment: str
+    llm_confidence: float
+    blended_confidence: float
+    confidence_breakdown: str
+
+    # Telemetry and Tracking
+    workflow_steps: list[dict[str, Any]]
+    detailed_steps: list[dict[str, Any]]
+    telemetry: dict[str, Any]
+    escalation: dict[str, Any] | None
+    actual_provider: str
+    actual_model: str
+
+    # Latencies (ms)
+    start_time: float
+    intent_ms: float
+    kb_ms: float
+    search_ms: float
+    model_ms: float
+    total_ms: float
+
+
+# Output compatibility container matching existing router expectations
+class AgentState:
+    def __init__(self, state_dict: dict[str, Any]) -> None:
+        self.ticket_text = state_dict.get("ticket_text", "")
+        self.preferred_provider = state_dict.get("preferred_provider", "gemini")
+        self.intent = IntentClassification(
+            intentCategory=state_dict.get("intent_category", "general"),
+            intentSummary=state_dict.get("intent_summary", ""),
+            requiresWebSearch=state_dict.get("requires_web_search", False),
+            searchReasoning=state_dict.get("search_reasoning", ""),
+        )
+        self.kb_results = [RetrievalResult(**r) if isinstance(r, dict) else r for r in state_dict.get("kb_results", [])]
+        self.search_results = [
+            TavilyResult(**r) if isinstance(r, dict) else r for r in state_dict.get("search_results", [])
+        ]
+        self.search_query = state_dict.get("search_query")
+        self.blended_confidence = state_dict.get("blended_confidence", 0.8)
+        self.confidence_breakdown = state_dict.get("confidence_breakdown", "")
+        self.workflow_steps = state_dict.get("workflow_steps", [])
+        self.detailed_steps = state_dict.get("detailed_steps", [])
+        self.telemetry = state_dict.get("telemetry", {})
+        self.escalation = state_dict.get("escalation")
+        self.actual_provider = state_dict.get("actual_provider", "gemini")
+        self.actual_model = state_dict.get("actual_model", "gemini-2.5-flash")
+
+        self.draft = DraftResponse(
+            reply=state_dict.get("reply", ""),
+            sources=state_dict.get("sources", []),
+            sentiment=state_dict.get("sentiment", "neutral"),
+            confidenceScore=self.blended_confidence,
+            intentCategory=self.intent.intentCategory,
+            intentSummary=self.intent.intentSummary,
+            confidenceBreakdown=self.confidence_breakdown,
+        )
+
+
+# ── 2. REGISTERED GRAPH TOOLS ────────────────────────────────────────────────
+
+
+class SupportToolRegistry:
+    def __init__(
+        self,
+        retrieval_service: RetrievalService,
+        search_service: SearchService,
+    ) -> None:
+        self.retrieval_service = retrieval_service
+        self.search_service = search_service
+
+    async def search_knowledge_base(self, query: str, db: Any) -> list[dict[str, Any]]:
+        """Query pgvector semantic chunks for internal knowledge base documentation."""
+        if not db:
+            return []
+        results = await self.retrieval_service.retrieve_relevant_articles(db, query)
+        return [r.model_dump() for r in results]
+
+    async def search_web(self, query: str) -> list[dict[str, Any]]:
+        """Perform live web search grounding using Tavily Search API."""
+        results = await self.search_service.search(query)
+        return [r.model_dump() for r in results]
+
+
+# ── 3. STATEGRAPH IMPLEMENTATION ─────────────────────────────────────────────
 
 
 class SupportAgentGraph:
@@ -98,152 +193,273 @@ class SupportAgentGraph:
         llm_service: LLMService,
         retrieval_service: RetrievalService,
         search_service: SearchService,
-    ):
+        max_tool_calls: int = 8,
+    ) -> None:
         self.llm_service = llm_service
         self.retrieval_service = retrieval_service
         self.search_service = search_service
+        self.max_tool_calls = max_tool_calls
+        self.tools = SupportToolRegistry(retrieval_service, search_service)
+        self.compiled_graph = self._build_graph()
 
-    def classify_intent(self, text: str) -> IntentClassification:
+    def _build_graph(self):
+        graph = StateGraph(SupportGraphState)
+
+        # Register Explicit Nodes
+        graph.add_node("ingest_and_classify", self._node_ingest_and_classify)
+        graph.add_node("retrieve_knowledge", self._node_retrieve_knowledge)
+        graph.add_node("ground_web_search", self._node_ground_web_search)
+        graph.add_node("synthesize_draft", self._node_synthesize_draft)
+        graph.add_node("guardrails_and_accounting", self._node_guardrails_and_accounting)
+
+        # Define Edges
+        graph.add_edge(START, "ingest_and_classify")
+        graph.add_edge("ingest_and_classify", "retrieve_knowledge")
+
+        # Conditional Route after KB Retrieval
+        graph.add_conditional_edges(
+            "retrieve_knowledge",
+            self._route_after_kb,
+            {
+                "ground_web_search": "ground_web_search",
+                "synthesize_draft": "synthesize_draft",
+            },
+        )
+
+        graph.add_edge("ground_web_search", "synthesize_draft")
+        graph.add_edge("synthesize_draft", "guardrails_and_accounting")
+        graph.add_edge("guardrails_and_accounting", END)
+
+        return graph.compile()
+
+    # ── NODE IMPLEMENTATIONS ─────────────────────────────────────────────────
+
+    async def _node_ingest_and_classify(self, state: SupportGraphState) -> dict[str, Any]:
+        text = state["ticket_text"]
+        intent_start = time.perf_counter()
         lower = text.lower()
+
         if any(w in lower for w in ["feature", "roadmap", "request support for", "slack integration", "discord"]):
-            return IntentClassification(
-                intentCategory="feature request",
-                intentSummary="Customer requesting platform feature support or workflow additions.",
-                requiresWebSearch=False,
-                searchReasoning="Feature requests are evaluated against roadmap.",
-            )
+            category = "feature request"
+            summary = "Customer requesting platform feature support or workflow additions."
+            req_search = False
+            reason = "Feature requests are evaluated against roadmap."
         elif any(
             w in lower for w in ["error", "bug", "crash", "500", "401", "exception", "failed signature", "mismatch"]
         ):
-            return IntentClassification(
-                intentCategory="bug report",
-                intentSummary="Customer reporting an unexpected error or technical integration crash.",
-                requiresWebSearch=True,
-                searchReasoning="Technical debugging requires developer documentation verification.",
-            )
+            category = "bug report"
+            summary = "Customer reporting an unexpected error or technical integration crash."
+            req_search = True
+            reason = "Technical debugging requires developer documentation verification."
         elif any(w in lower for w in ["invoice", "charge", "refund", "billing", "pricing", "subscription"]):
-            return IntentClassification(
-                intentCategory="billing",
-                intentSummary="Customer inquiring regarding billing, invoices, or subscriptions.",
-                requiresWebSearch=False,
-                searchReasoning="Billing questions are internal account matters.",
-            )
+            category = "billing"
+            summary = "Customer inquiring regarding billing, invoices, or subscriptions."
+            req_search = False
+            reason = "Billing questions are internal account matters."
         elif any(w in lower for w in ["password", "2fa", "locked out", "login", "sso", "scalekit", "oauth"]):
-            return IntentClassification(
-                intentCategory="account/access",
-                intentSummary="Customer seeking account credentials, SSO, or access permissions.",
-                requiresWebSearch=False,
-                searchReasoning="Account access protocols are covered in internal documentation.",
-            )
+            category = "account/access"
+            summary = "Customer seeking account credentials, SSO, or access permissions."
+            req_search = False
+            reason = "Account access protocols are covered in internal documentation."
         else:
-            return IntentClassification(
-                intentCategory="general",
-                intentSummary="Customer inquiry regarding platform capabilities.",
-                requiresWebSearch=False,
-                searchReasoning="General inquiry evaluated directly.",
-            )
+            category = "general"
+            summary = "Customer inquiry regarding platform capabilities."
+            req_search = False
+            reason = "General inquiry evaluated directly."
 
-    def _build_fallback_reply(
-        self,
-        text: str,
-        intent: IntentClassification,
-        kb_results: list[Any],
-        search_results: list[Any],
-    ) -> str:
-        sections = [
-            "Hello,\n",
-            f"Thank you for contacting support regarding your {intent.intentCategory} inquiry.\n",
-        ]
-        if kb_results:
-            top = kb_results[0]
-            sections.extend(
-                [
-                    f"### Resolution: {top.title}\n",
-                    f"{top.content}\n",
-                    "### Recommended Actions:",
-                    "- Review the configuration documented above.",
-                    "- Verify that your request parameters and headers match the required specification.",
-                    "- Re-test the endpoint or workflow.\n",
-                ]
-            )
-        elif search_results:
-            top = search_results[0]
-            sections.extend(
-                [
-                    "### Reference Details:\n",
-                    f"{top.snippet}\n",
-                    f"For full technical documentation, please consult: {top.url}\n",
-                    "### Next Steps:",
-                    "- Compare your integration implementation with the reference documentation above.",
-                    "- Ensure all dependencies and credentials are up to date.\n",
-                ]
-            )
-        else:
-            sections.extend(
-                [
-                    "Our engineering team has received your ticket and is actively reviewing the request.\n",
-                    "### Diagnostic Checklist:",
-                    "- Please ensure any relevant error logs or request IDs are captured.",
-                    "- If you have a minimal reproducible code snippet, please reply with it to expedite resolution.\n",
-                ]
-            )
+        intent_ms = round((time.perf_counter() - intent_start) * 1000, 1)
 
-        sections.extend(
-            [
-                "Please let us know if this helps or if you need any additional assistance. We're here to help!\n",
-                "Best regards,\nSupport Engineering Team",
-            ]
+        steps = list(state.get("workflow_steps", []))
+        steps.append(
+            {
+                "agent": "Intent Agent",
+                "status": "completed",
+                "output": f"[{category}] {summary}",
+            }
         )
-        return "\n".join(sections)
 
-    async def synthesize_reply(
-        self,
-        text: str,
-        provider: str,
-        intent: IntentClassification,
-        kb_results: list[Any],
-        search_results: list[Any],
-    ) -> tuple[str, list[str], str, float, str, str]:
-        has_kb = len(kb_results) > 0
-        has_search = len(search_results) > 0
+        return {
+            "intent_category": category,
+            "intent_summary": summary,
+            "requires_web_search": req_search,
+            "search_reasoning": reason,
+            "intent_ms": intent_ms,
+            "workflow_steps": steps,
+        }
+
+    async def _node_retrieve_knowledge(self, state: SupportGraphState) -> dict[str, Any]:
+        kb_start = time.perf_counter()
+        tools_list = list(state.get("tool_executions", []))
+        tool_count = state.get("tool_call_count", 0) + 1
+        steps = list(state.get("workflow_steps", []))
+
+        kb_results: list[dict[str, Any]] = []
+        status = "completed"
+        error_msg = None
+
+        try:
+            kb_results = await self.tools.search_knowledge_base(state["ticket_text"], state.get("db"))
+        except Exception as e:
+            status = "failed"
+            error_msg = str(e)
+            logger.warning("Knowledge tool execution failed: %s", e)
+
+        kb_ms = round((time.perf_counter() - kb_start) * 1000, 1)
+
+        tools_list.append(
+            {
+                "tool": "search_knowledge_base",
+                "status": status,
+                "durationMs": kb_ms,
+                "resultCount": len(kb_results),
+                "error": error_msg,
+            }
+        )
+
+        if kb_results:
+            top_title = kb_results[0].get("title", "")
+            top_score = kb_results[0].get("score", 0.8)
+            steps.append(
+                {
+                    "agent": "Knowledge Agent",
+                    "status": "completed",
+                    "output": f"Retrieved article '{top_title}' ({(top_score * 100):.0f}% match).",
+                }
+            )
+        else:
+            steps.append(
+                {
+                    "agent": "Knowledge Agent",
+                    "status": "completed",
+                    "output": "No internal knowledge articles matched query.",
+                }
+            )
+
+        return {
+            "kb_results": kb_results,
+            "kb_ms": kb_ms,
+            "tool_executions": tools_list,
+            "tool_call_count": tool_count,
+            "workflow_steps": steps,
+        }
+
+    def _route_after_kb(self, state: SupportGraphState) -> Literal["ground_web_search", "synthesize_draft"]:
+        # If tool budget exceeded, immediately terminate tool calling
+        if state.get("tool_call_count", 0) >= self.max_tool_calls:
+            return "synthesize_draft"
+
+        # Check if internal KB already provided high-confidence match
+        kb_results = state.get("kb_results", [])
+        has_high_conf_kb = False
+        if kb_results:
+            top_score = max(r.get("score", 0.0) for r in kb_results)
+            if top_score >= 0.85 and not state.get("requires_web_search", False):
+                has_high_conf_kb = True
+
+        if has_high_conf_kb:
+            return "synthesize_draft"
+
+        return "ground_web_search"
+
+    async def _node_ground_web_search(self, state: SupportGraphState) -> dict[str, Any]:
+        search_start = time.perf_counter()
+        tools_list = list(state.get("tool_executions", []))
+        tool_count = state.get("tool_call_count", 0) + 1
+        steps = list(state.get("workflow_steps", []))
+
+        query = extract_search_query(state["ticket_text"], state.get("intent_summary", ""))
+        search_results: list[dict[str, Any]] = []
+        status = "completed"
+        error_msg = None
+
+        try:
+            search_results = await self.tools.search_web(query)
+        except Exception as e:
+            status = "failed"
+            error_msg = str(e)
+            logger.warning("Web search tool execution failed: %s", e)
+
+        search_ms = round((time.perf_counter() - search_start) * 1000, 1)
+
+        tools_list.append(
+            {
+                "tool": "search_web",
+                "query": query,
+                "status": status,
+                "durationMs": search_ms,
+                "resultCount": len(search_results),
+                "error": error_msg,
+            }
+        )
+
+        steps.append(
+            {
+                "agent": "Search Agent",
+                "status": "completed",
+                "output": (
+                    f"Executed live search for '{query}' ({len(search_results)} URLs retrieved from Tavily, {search_ms}ms)."
+                    if search_results
+                    else f"Executed live search for '{query}', but returned 0 results ({search_ms}ms)."
+                ),
+            }
+        )
+
+        return {
+            "search_query": query,
+            "search_results": search_results,
+            "search_ms": search_ms,
+            "tool_executions": tools_list,
+            "tool_call_count": tool_count,
+            "workflow_steps": steps,
+        }
+
+    async def _node_synthesize_draft(self, state: SupportGraphState) -> dict[str, Any]:
+        model_start = time.perf_counter()
+        provider = state.get("preferred_provider", "gemini")
+        kb_results = state.get("kb_results", [])
+        search_results = state.get("search_results", [])
+        steps = list(state.get("workflow_steps", []))
 
         kb_formatted = (
             "\n\n".join(
-                f"#{i + 1} [{getattr(k, 'category', 'general')}] {k.title} (Relevance: {(getattr(k, 'score', 0.8) * 100):.0f}%)\n{k.content}"
+                f"#{i + 1} [{k.get('category', 'general')}] {k.get('title', '')} (Relevance: {(k.get('score', 0.8) * 100):.0f}%)\n{k.get('content', '')}"
                 for i, k in enumerate(kb_results)
             )
-            if has_kb
+            if kb_results
             else "none"
         )
 
         search_formatted = (
-            "\n\n".join(f"#{i + 1} {r.title} ({r.url}):\n{r.snippet}" for i, r in enumerate(search_results))
-            if has_search
+            "\n\n".join(
+                f"#{i + 1} {r.get('title', '')} ({r.get('url', '')}):\n{r.get('snippet', '')}"
+                for i, r in enumerate(search_results)
+            )
+            if search_results
             else "none"
         )
 
         prompt = [
             "You are an expert, empathetic Tier-2/Tier-3 B2B customer support engineer.",
-            "Write a clear, beautifully structured, context-grounded response to the customer.",
+            "Write a clear, context-grounded response to the customer.",
             "",
             "STRUCTURE REQUIREMENTS FOR 'reply':",
-            "1. Greeting: Professional and warm greeting acknowledging the customer's specific issue.",
-            "2. Summary / Root Cause: Concise explanation of what is causing the issue or the recommended approach.",
+            "1. Greeting: Professional acknowledgment of customer issue.",
+            "2. Summary / Root Cause: Concise explanation of what is causing the issue.",
             "3. Step-by-Step Resolution: Use markdown bullet points or numbered lists (1., 2., 3.) with code blocks or config parameters if applicable.",
-            "4. Additional Notes / Verification: Prerequisites, logs to check, or tips to avoid regression.",
-            "5. Polite Closing: Professional sign-off offering dedicated follow-up.",
+            "4. Additional Notes / Verification: Prerequisites or logs to check.",
+            "5. Polite Closing: Professional sign-off.",
             "",
             "OUTPUT FORMAT REQUIREMENT:",
             "Output ONLY a strict, valid JSON object with this exact shape (no markdown backticks around JSON):",
             "{",
-            '  "reply": "Well-formatted, multi-paragraph markdown response with headings, bullet points, and clean line breaks",',
+            '  "reply": "Well-formatted, multi-paragraph markdown response",',
             '  "sources": ["URLs copied from the Web Search Grounding Results below, or [] if none"],',
             '  "sentiment": "positive" | "neutral" | "frustrated" | "critical",',
             '  "confidenceScore": 0.95',
             "}",
             "",
-            f"Classified Intent Category: {intent.intentCategory}",
-            f"Classified Intent Summary: {intent.intentSummary}",
+            f"Classified Intent Category: {state.get('intent_category', 'general')}",
+            f"Classified Intent Summary: {state.get('intent_summary', '')}",
             "",
             "Grounding Knowledge Base Matches:",
             kb_formatted,
@@ -252,198 +468,178 @@ class SupportAgentGraph:
             search_formatted,
             "",
             "Customer Ticket:",
-            text,
+            state["ticket_text"],
         ]
-
         full_prompt = "\n".join(prompt)
+
+        reply_text = ""
+        sources: list[str] = []
+        sentiment = "neutral"
+        llm_conf = 0.85
+        actual_prov = provider
+        actual_mod = "gemini-2.5-flash"
 
         try:
             chat_model, actual_prov = self.llm_service.get_model_with_fallback(provider)
             actual_mod = getattr(chat_model, "model_name", getattr(chat_model, "model", "default-model"))
-
             resp = await chat_model.ainvoke(full_prompt)
             content = resp.content if isinstance(resp.content, str) else str(resp.content)
             parsed = parse_json_from_llm(content)
 
             reply_text = str(parsed.get("reply", "")).strip()
-            sources = parsed.get("sources", [])
-            if not isinstance(sources, list):
-                sources = []
+            sources = [str(s) for s in parsed.get("sources", []) if s]
             sentiment = str(parsed.get("sentiment", "neutral")).lower()
             if sentiment not in ["positive", "neutral", "frustrated", "critical"]:
                 sentiment = "neutral"
-            confidence = float(parsed.get("confidenceScore", 0.9))
-
-            if not reply_text:
-                raise ValueError("LLM returned empty reply in JSON")
-
-            return reply_text, [str(s) for s in sources if s], sentiment, confidence, actual_prov, actual_mod
+            llm_conf = float(parsed.get("confidenceScore", 0.85))
         except Exception as e:
-            logger.warning("LLM synthesis error, falling back to structured template: %s", e)
-            fallback_text = self._build_fallback_reply(text, intent, kb_results, search_results)
-            fallback_sources = [r.url for r in search_results if getattr(r, "url", None)]
-            fallback_sentiment = (
+            logger.warning("LLM synthesis error, building template response: %s", e)
+            reply_text = self._build_fallback_reply(
+                state["ticket_text"],
+                state.get("intent_category", "general"),
+                kb_results,
+                search_results,
+            )
+            sources = [r["url"] for r in search_results if isinstance(r, dict) and r.get("url")]
+            sentiment = (
                 "frustrated"
-                if any(w in text.lower() for w in ["angry", "frustrated", "urgent", "broken", "critical", "blocked"])
+                if any(
+                    w in state["ticket_text"].lower() for w in ["angry", "frustrated", "urgent", "broken", "critical"]
+                )
                 else "neutral"
             )
-            return fallback_text, fallback_sources, fallback_sentiment, 0.75, provider, "fallback-synthesizer"
-
-    async def execute(self, text: str, provider: ProviderType, db: Any) -> AgentState:
-        start_time = time.perf_counter()
-        state = AgentState(ticket_text=text, preferred_provider=provider)
-
-        # 1. Intent Classification
-        intent_start = time.perf_counter()
-        state.intent = self.classify_intent(text)
-        intent_ms = round((time.perf_counter() - intent_start) * 1000, 1)
-
-        state.workflow_steps.append(
-            {
-                "agent": "Intent Agent",
-                "status": "completed",
-                "output": f"[{state.intent.intentCategory}] {state.intent.intentSummary}",
-            }
-        )
-
-        # 2. Knowledge Base Retrieval
-        kb_start = time.perf_counter()
-        state.kb_results = await self.retrieval_service.retrieve_relevant_articles(db, text)
-        kb_ms = round((time.perf_counter() - kb_start) * 1000, 1)
-
-        if state.kb_results:
-            top_art = state.kb_results[0]
-            state.workflow_steps.append(
-                {
-                    "agent": "Knowledge Agent",
-                    "status": "completed",
-                    "output": f"Retrieved article '{top_art.title}' ({(top_art.score * 100):.0f}% match).",
-                }
-            )
-        else:
-            state.workflow_steps.append(
-                {
-                    "agent": "Knowledge Agent",
-                    "status": "completed",
-                    "output": "No internal knowledge articles matched query.",
-                }
-            )
-
-        # 3. Web Search Grounding
-        search_start = time.perf_counter()
-        search_ms = 0.0
-        do_web_search = state.intent.requiresWebSearch or len(state.kb_results) == 0
-        if do_web_search:
-            state.search_query = extract_search_query(text, state.intent.intentSummary)
-            state.search_results = await self.search_service.search(state.search_query)
-            search_ms = round((time.perf_counter() - search_start) * 1000, 1)
-            state.workflow_steps.append(
-                {
-                    "agent": "Search Agent",
-                    "status": "completed",
-                    "output": (
-                        f"Executed live search for '{state.search_query}' ({len(state.search_results)} URLs retrieved from Tavily, {search_ms}ms)."
-                        if state.search_results
-                        else f"Executed live search for '{state.search_query}', but returned 0 results ({search_ms}ms)."
-                    ),
-                }
-            )
-        else:
-            state.workflow_steps.append(
-                {
-                    "agent": "Search Agent",
-                    "status": "completed",
-                    "output": f"Skipped external web search. {state.intent.searchReasoning}",
-                }
-            )
-
-        # 4. Synthesizer with LLM invocation & fallback
-        model_start = time.perf_counter()
-        (
-            reply_text,
-            sources,
-            sentiment,
-            llm_confidence,
-            actual_provider,
-            actual_model,
-        ) = await self.synthesize_reply(
-            text=text,
-            provider=provider,
-            intent=state.intent,
-            kb_results=state.kb_results,
-            search_results=state.search_results,
-        )
-        state.actual_provider = actual_provider
-        state.actual_model = actual_model
-
-        if not sources and state.search_results:
-            sources = [r.url for r in state.search_results if r.url]
+            llm_conf = 0.75
+            actual_prov = provider
+            actual_mod = "fallback-synthesizer"
 
         model_ms = round((time.perf_counter() - model_start) * 1000, 1)
-        total_ms = round((time.perf_counter() - start_time) * 1000, 1)
 
-        # 5. Hybrid Confidence Scoring (Aligned with defensible hybrid formula)
-        llm_conf = llm_confidence or 0.8
-        retrieval_score = 0.35
-        if state.kb_results:
-            top_kb = max(r.score for r in state.kb_results)
-            retrieval_score = min(1.0, top_kb * 0.95 + 0.1)
-        elif state.search_results:
-            retrieval_score = 0.82
-        elif not state.intent.requiresWebSearch:
-            retrieval_score = 0.88
-
-        blended = round(min(0.98, max(0.2, (0.55 * retrieval_score) + (0.45 * llm_conf))), 2)
-        state.blended_confidence = blended
-        top_kb_str = f" (top match: {(state.kb_results[0].score * 100):.0f}%)" if state.kb_results else ""
-        state.confidence_breakdown = (
-            f"{len(state.kb_results)} KB articles matched{top_kb_str}, {len(state.search_results)} web sources, "
-            f"model confidence: {(llm_conf * 100):.0f}%"
-        )
-
-        state.draft = DraftResponse(
-            reply=reply_text,
-            sources=sources[:3],
-            sentiment=sentiment,
-            confidenceScore=blended,
-            intentCategory=state.intent.intentCategory,
-            intentSummary=state.intent.intentSummary,
-            confidenceBreakdown=state.confidence_breakdown,
-        )
-
-        state.workflow_steps.append(
+        steps.append(
             {
                 "agent": "Response Agent",
                 "status": "completed",
-                "output": f"Synthesized reply with sentiment '{sentiment}' and blended confidence {(blended * 100):.0f}%.",
+                "output": f"Synthesized reply with sentiment '{sentiment}'.",
             }
         )
 
-        # Escalation check: only escalate if confidence < 0.70 or customer sentiment is critical / frustrated
+        return {
+            "reply": reply_text,
+            "sources": sources,
+            "sentiment": sentiment,
+            "llm_confidence": llm_conf,
+            "actual_provider": actual_prov,
+            "actual_model": actual_mod,
+            "model_ms": model_ms,
+            "workflow_steps": steps,
+        }
+
+    def _build_fallback_reply(
+        self,
+        text: str,
+        category: str,
+        kb_results: list[dict[str, Any]],
+        search_results: list[dict[str, Any]],
+    ) -> str:
+        sections = [
+            "Hello,\n",
+            f"Thank you for contacting support regarding your {category} inquiry.\n",
+        ]
+        if kb_results:
+            top = kb_results[0]
+            sections.extend(
+                [
+                    f"### Resolution: {top.get('title', 'Reference Article')}\n",
+                    f"{top.get('content', '')}\n",
+                    "### Recommended Actions:",
+                    "- Review the configuration documented above.",
+                    "- Verify that your request parameters and headers match the required specification.\n",
+                ]
+            )
+        elif search_results:
+            top = search_results[0]
+            sections.extend(
+                [
+                    "### Reference Details:\n",
+                    f"{top.get('snippet', '')}\n",
+                    f"For full technical documentation, please consult: {top.get('url', '')}\n",
+                ]
+            )
+        else:
+            sections.extend(
+                [
+                    "Our engineering team has received your ticket and is actively reviewing the request.\n",
+                    "### Diagnostic Checklist:",
+                    "- Please ensure any relevant error logs or request IDs are captured.\n",
+                ]
+            )
+
+        sections.extend(
+            [
+                "Please let us know if this helps or if you need any additional assistance.\n",
+                "Best regards,\nSupport Engineering Team",
+            ]
+        )
+        return "\n".join(sections)
+
+    async def _node_guardrails_and_accounting(self, state: SupportGraphState) -> dict[str, Any]:
+        kb_results = state.get("kb_results", [])
+        search_results = state.get("search_results", [])
+        llm_conf = state.get("llm_confidence", 0.85)
+
+        # 1. Hybrid Confidence Scoring
+        retrieval_score = 0.35
+        if kb_results:
+            top_kb = max(r.get("score", 0.0) for r in kb_results)
+            retrieval_score = min(1.0, top_kb * 0.95 + 0.1)
+        elif search_results:
+            retrieval_score = 0.82
+        elif not state.get("requires_web_search", False):
+            retrieval_score = 0.88
+
+        blended = round(min(0.98, max(0.2, (0.55 * retrieval_score) + (0.45 * llm_conf))), 2)
+
+        top_kb_str = f" (top match: {(kb_results[0].get('score', 0.8) * 100):.0f}%)" if kb_results else ""
+        confidence_breakdown = (
+            f"{len(kb_results)} KB articles matched{top_kb_str}, {len(search_results)} web sources, "
+            f"model confidence: {(llm_conf * 100):.0f}%"
+        )
+
+        # 2. Source citation verification: only keep sources that came from retrieved evidence
+        valid_urls = {r.get("url") for r in search_results if isinstance(r, dict) and r.get("url")}
+        grounded_sources = [s for s in state.get("sources", []) if s in valid_urls]
+        if not grounded_sources and valid_urls:
+            grounded_sources = list(valid_urls)[:3]
+
+        # 3. Escalation determination
+        sentiment = state.get("sentiment", "neutral")
         is_escalated = (blended < 0.70) or (sentiment in ["frustrated", "critical"])
+        escalation = None
         if is_escalated:
-            state.escalation = {
-                "recommendedResponse": f"Escalated to human support lead: {reply_text}",
+            escalation = {
+                "recommendedResponse": f"Escalated to human support lead: {state.get('reply', '')}",
                 "suggestedActions": [
                     "Review customer logs in developer dashboard",
                     "Verify configuration parameters with engineering lead",
                     "Follow up via primary customer contact channel",
                 ],
             }
-        else:
-            state.escalation = None
 
-        # Telemetry
-        prompt_tokens = estimate_tokens(text)
-        completion_tokens = estimate_tokens(reply_text)
+        # 4. Telemetry and accounting
+        start_time = state.get("start_time", time.perf_counter())
+        total_ms = round((time.perf_counter() - start_time) * 1000, 1)
+
+        prompt_tokens = estimate_tokens(state["ticket_text"])
+        completion_tokens = estimate_tokens(state.get("reply", ""))
         total_tokens = prompt_tokens + completion_tokens
-        cost_usd, formatted_cost = calculate_estimated_cost(actual_model, prompt_tokens, completion_tokens)
+        cost_usd, formatted_cost = calculate_estimated_cost(
+            state.get("actual_model", "gemini-2.5-flash"), prompt_tokens, completion_tokens
+        )
 
-        state.telemetry = {
+        telemetry = {
             "requestId": f"req_{int(time.time() * 1000)}",
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "provider": actual_provider,
-            "model": actual_model,
+            "provider": state.get("actual_provider", "gemini"),
+            "model": state.get("actual_model", "gemini-2.5-flash"),
             "promptTokens": prompt_tokens,
             "completionTokens": completion_tokens,
             "totalTokens": total_tokens,
@@ -452,15 +648,15 @@ class SupportAgentGraph:
             "formattedCost": formatted_cost,
             "latencies": {
                 "totalMs": total_ms,
-                "intentMs": intent_ms,
-                "kbMs": kb_ms,
-                "searchMs": search_ms,
-                "modelMs": model_ms,
+                "intentMs": state.get("intent_ms", 0.0),
+                "kbMs": state.get("kb_ms", 0.0),
+                "searchMs": state.get("search_ms", 0.0),
+                "modelMs": state.get("model_ms", 0.0),
             },
         }
 
-        # Step details for UI timeline (complete 6-stage journey matching Node.js wire format)
-        state.detailed_steps = [
+        # 5. Timeline steps matching the 6-stage wire contract
+        steps = [
             {
                 "id": f"step_ingestion_{int(time.time() * 1000)}",
                 "name": "Ticket Ingestion & Sentiment Analysis",
@@ -468,8 +664,8 @@ class SupportAgentGraph:
                 "status": "completed",
                 "agent": "Ingestion Agent",
                 "durationMs": 2.5,
-                "timestamp": state.telemetry["timestamp"],
-                "summary": f"Ingested query ({len(text)} chars). Sentiment: '{sentiment}'.",
+                "timestamp": telemetry["timestamp"],
+                "summary": f"Ingested query ({len(state['ticket_text'])} chars). Sentiment: '{sentiment}'.",
             },
             {
                 "id": f"step_intent_{int(time.time() * 1000) + 1}",
@@ -477,43 +673,33 @@ class SupportAgentGraph:
                 "stage": "intent_classification",
                 "status": "completed",
                 "agent": "Intent Agent",
-                "durationMs": intent_ms,
-                "timestamp": state.telemetry["timestamp"],
-                "summary": f"Classified under '{state.intent.intentCategory}'.",
+                "durationMs": state.get("intent_ms", 0.0),
+                "timestamp": telemetry["timestamp"],
+                "summary": f"Classified under '{state.get('intent_category', 'general')}'.",
             },
             {
                 "id": f"step_kb_{int(time.time() * 1000) + 2}",
                 "name": "Knowledge Base Vector Search",
                 "stage": "kb_retrieval",
-                "status": "completed" if state.kb_results else "skipped",
+                "status": "completed" if kb_results else "skipped",
                 "agent": "Knowledge Agent",
-                "durationMs": kb_ms,
-                "timestamp": state.telemetry["timestamp"],
-                "summary": f"Searched knowledge base with pgvector ({len(state.kb_results)} matched).",
+                "durationMs": state.get("kb_ms", 0.0),
+                "timestamp": telemetry["timestamp"],
+                "summary": f"Searched knowledge base with pgvector ({len(kb_results)} matched).",
             },
             {
                 "id": f"step_search_{int(time.time() * 1000) + 3}",
                 "name": "Web Search Grounding",
                 "stage": "web_search",
-                "status": "completed"
-                if (do_web_search and state.search_results)
-                else ("skipped" if not do_web_search else "failed"),
+                "status": "completed" if search_results else "skipped",
                 "agent": "Search Agent",
-                "durationMs": search_ms,
-                "timestamp": state.telemetry["timestamp"],
+                "durationMs": state.get("search_ms", 0.0),
+                "timestamp": telemetry["timestamp"],
                 "summary": (
-                    f"Live search retrieved {len(state.search_results)} source URL(s) from Tavily ({search_ms}ms)."
-                    if (do_web_search and state.search_results)
-                    else (
-                        f"Skipped external web search: {state.intent.searchReasoning}"
-                        if not do_web_search
-                        else f"Search executed for '{state.search_query}' but returned 0 results."
-                    )
+                    f"Live search retrieved {len(search_results)} source URL(s) from Tavily ({state.get('search_ms', 0.0)}ms)."
+                    if search_results
+                    else f"Skipped external web search: {state.get('search_reasoning', '')}"
                 ),
-                "details": {
-                    "searchExecuted": do_web_search,
-                    "retrievedUrls": sources[:3],
-                },
             },
             {
                 "id": f"step_synthesis_{int(time.time() * 1000) + 4}",
@@ -521,8 +707,8 @@ class SupportAgentGraph:
                 "stage": "ai_synthesis",
                 "status": "completed",
                 "agent": "Response Agent",
-                "durationMs": model_ms,
-                "timestamp": state.telemetry["timestamp"],
+                "durationMs": state.get("model_ms", 0.0),
+                "timestamp": telemetry["timestamp"],
                 "summary": f"Drafted response with {(blended * 100):.0f}% confidence.",
             },
             {
@@ -532,7 +718,7 @@ class SupportAgentGraph:
                 "status": "completed",
                 "agent": "Guardrails & Accounting",
                 "durationMs": 1.5,
-                "timestamp": state.telemetry["timestamp"],
+                "timestamp": telemetry["timestamp"],
                 "summary": (
                     f"Blended confidence: {(blended * 100):.0f}%. "
                     f"{'Triggered Tier-2 human escalation protocol.' if is_escalated else 'Passed confidence threshold.'} "
@@ -540,7 +726,7 @@ class SupportAgentGraph:
                 ),
                 "details": {
                     "blendedConfidence": blended,
-                    "confidenceBreakdown": state.confidence_breakdown,
+                    "confidenceBreakdown": confidence_breakdown,
                     "estimatedCostUsd": cost_usd,
                     "formattedCost": formatted_cost,
                     "escalated": is_escalated,
@@ -548,4 +734,52 @@ class SupportAgentGraph:
             },
         ]
 
-        return state
+        return {
+            "blended_confidence": blended,
+            "confidence_breakdown": confidence_breakdown,
+            "sources": grounded_sources[:3],
+            "escalation": escalation,
+            "telemetry": telemetry,
+            "detailed_steps": steps,
+            "total_ms": total_ms,
+        }
+
+    # ── PUBLIC ENTRYPOINT ────────────────────────────────────────────────────
+
+    async def execute(self, text: str, provider: ProviderType, db: Any) -> AgentState:
+        """Executes the compiled LangGraph StateGraph pipeline and returns the result."""
+        initial_state: SupportGraphState = {
+            "ticket_text": text,
+            "preferred_provider": provider,
+            "db": db,
+            "intent_category": "general",
+            "intent_summary": "",
+            "requires_web_search": False,
+            "search_reasoning": "",
+            "kb_results": [],
+            "search_results": [],
+            "search_query": None,
+            "tool_executions": [],
+            "tool_call_count": 0,
+            "reply": "",
+            "sources": [],
+            "sentiment": "neutral",
+            "llm_confidence": 0.85,
+            "blended_confidence": 0.8,
+            "confidence_breakdown": "",
+            "workflow_steps": [],
+            "detailed_steps": [],
+            "telemetry": {},
+            "escalation": None,
+            "actual_provider": provider,
+            "actual_model": "gemini-2.5-flash",
+            "start_time": time.perf_counter(),
+            "intent_ms": 0.0,
+            "kb_ms": 0.0,
+            "search_ms": 0.0,
+            "model_ms": 0.0,
+            "total_ms": 0.0,
+        }
+
+        final_state = await self.compiled_graph.ainvoke(initial_state)
+        return AgentState(final_state)

@@ -18,6 +18,7 @@ class SessionUser(BaseModel):
     id: str
     email: str
     name: str | None = None
+    role: str = "customer"  # "admin" | "agent" | "customer"
 
 
 def _cookie_options(settings: Settings, request: Request | None = None) -> dict[str, Any]:
@@ -26,10 +27,7 @@ def _cookie_options(settings: Settings, request: Request | None = None) -> dict[
         or settings.backend_url.lower().startswith("https://")
         or (
             request is not None
-            and (
-                request.url.scheme == "https"
-                or request.headers.get("x-forwarded-proto") == "https"
-            )
+            and (request.url.scheme == "https" or request.headers.get("x-forwarded-proto") == "https")
         )
     )
     return {
@@ -51,6 +49,7 @@ def set_session_cookie(
         "id": user.id,
         "email": user.email,
         "name": user.name or "",
+        "role": user.role,
         "iat": datetime.now(UTC),
         "exp": datetime.now(UTC) + timedelta(days=settings.session_jwt_expiry_days),
     }
@@ -115,6 +114,7 @@ def read_session_cookie(request: Request, settings: Settings | None = None) -> S
             id=str(decoded.get("id", "")),
             email=str(decoded.get("email", "")),
             name=decoded.get("name"),
+            role=str(decoded.get("role", "customer")),
         )
     except Exception as e:
         logger.warning("read_session_cookie decode error: %s", e)
