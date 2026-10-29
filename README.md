@@ -167,10 +167,15 @@ python -m venv .venv
 # Install dependencies
 pip install -e .
 
+# Run database migrations against PostgreSQL / Neon
+alembic upgrade head
+
 # Start the server with hot-reload
 uvicorn app.main:app --host 127.0.0.1 --port 5000 --reload
 ```
 The FastAPI backend will start on **`http://localhost:5000`** (Swagger docs available at `http://localhost:5000/docs`).
+
+> **Note on Migrations**: `alembic upgrade head` runs migration `0001_initial_schema.py`, which initializes all required tables (`users`, `tickets`, `ticket_messages`, `kb_articles`, `document_chunks`, `telemetry_records`) and creates the `pgvector` extension with 1536-dimensional vector columns. Production starts with a completely clean database (no fake articles or dummy data).
 
 ### 2. Start the React Frontend
 
@@ -201,22 +206,23 @@ The client will start on **`http://localhost:5173`**.
 * `POST /auth/logout` — Invalidates session and clears cookie.
 
 ### Support & AI Agent Endpoints (Session Protected)
-* `POST /api/support/run` — Executes the 6-stage LangGraph multi-agent pipeline:
+* `POST /api/support/run` — Executes the compiled LangGraph multi-agent pipeline:
   * Ingestion & sentiment classification
   * Intent classification & routing
-  * pgvector semantic retrieval from Neon
+  * pgvector semantic retrieval from Neon/PostgreSQL (1536-dimensional embeddings)
   * Real-time Tavily search grounding (with citation filtering)
   * Multi-model synthesis (Gemini / OpenAI / Groq)
   * Defensible hybrid confidence calculation, token cost accounting, and auto-escalation check.
-* `GET /api/support/tickets` — Lists all support tickets with messages, telemetry, and status.
-* `POST /api/support/tickets` — Creates a new ticket manually.
-* `GET /api/support/tickets/{id}` — Retrieves detailed ticket dialogue history and execution steps.
-* `PATCH /api/support/tickets/{id}` — Updates ticket status (`open`, `pending`, `escalated`, `closed`).
+* `GET /api/support/tickets` — Lists support tickets. Customers only see tickets matching their verified email; Agents and Admins see all tickets.
+* `POST /api/support/tickets` — Creates a new ticket.
+* `GET /api/support/tickets/{id}` — Retrieves detailed ticket dialogue history. Returns `403 Forbidden` if a customer attempts cross-user access.
+* `PATCH /api/support/tickets/{id}` — Updates ticket status (`open`, `pending`, `escalated`, `closed`). Restricted to Support Agents and Admins.
+* `POST /api/support/tickets/clear` — Clears all tickets and telemetry. Restricted strictly to Admins.
 * `GET /api/support/kb` — Retrieves all knowledge base articles.
-* `POST /api/support/kb` — Creates a new article and automatically indexes 1536-dim vector chunks in pgvector.
-* `PATCH /api/support/kb/{id}` — Modifies an article and re-indexes vector embeddings.
-* `DELETE /api/support/kb/{id}` — Deletes an article and its vector chunks.
-* `GET /api/support/analytics` — Returns aggregate system telemetry, SLA distributions, sentiment analysis, and token cost breakdown.
+* `POST /api/support/kb` — Creates a new article and indexes 1536-dim vector chunks in pgvector. Restricted to Support Agents and Admins.
+* `PATCH /api/support/kb/{id}` — Modifies an article and re-indexes vector embeddings without duplicate chunks. Restricted to Support Agents and Admins.
+* `DELETE /api/support/kb/{id}` — Deletes an article and its vector chunks. Restricted to Support Agents and Admins.
+* `GET /api/support/analytics` — Returns aggregate system telemetry, SLA distributions, sentiment analysis, and token cost breakdown. Restricted to Support Agents and Admins.
 
 ---
 
