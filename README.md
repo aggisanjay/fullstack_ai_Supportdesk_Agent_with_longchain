@@ -1,58 +1,51 @@
-# 🧠 Agentic Support Desk — Full-Stack AI Application
+# 🧠 SupportDesk AI — Production Multi-Agent Support Desk
 
-A premium, production-ready full-stack **Support Desk Agent** that accepts customer tickets, performs multi-agent workflows, grounds answers with web search or internal knowledge bases, and generates structured AI replies with automated escalation workflows.
-
-This project demonstrates modern AI backend design, security compliance, session handling, and advanced agentic orchestration.
+A production-grade full-stack **AI Support Desk Agent** that accepts customer queries, coordinates a multi-agent LangGraph workflow, grounds responses with real-time Tavily web searches and PostgreSQL pgvector semantic retrieval, and produces Tier-2/Tier-3 structured responses with automated escalation and cost accounting.
 
 ---
 
-
-
 ## ✨ Features
 
-*   **🔒 Secure Session Authentication**: Cookie-based authentication using `httpOnly` JWT cookies preventing XSS token theft, integrated with [Scalekit OAuth](https://www.scalekit.com/) or simulated via a dev-only E2E authentication mode.
-*   **🤖 Multi-Agent Orchestration**: Powered by [LangGraph](https://www.langchain.com/langgraph) and [LangChain](https://www.langchain.com/), coordinating specialized sub-agents:
-    *   **Intent Agent**: Analyzes customer ticket topics.
-    *   **Knowledge Agent**: Performs fuzzy keyword matches against the internal Knowledge Base.
-    *   **Search Agent**: Determines if a technical query requires external information and triggers a [Tavily Search](https://tavily.com/) lookup.
-    *   **Response Agent**: Sentiment classification (positive, neutral, frustrated, critical) and response drafting with confidence rating.
-*   **🛡️ Strict Validation & Guardrails**: Full JSON output schema validation using [Zod](https://zod.dev/) schemas. Validates grounding URLs returned by the model to prevent hallucinated citations.
-*   **🔌 LLM Provider Agility**: Seamless switching between OpenAI (GPT-4o-mini) and Google Gemini (Gemini 3 Flash Preview) with an automatic failover fallback to Groq (Llama-3.3-70b-versatile).
-*   **📈 Real-Time Support Analytics**: Live dashboard showcasing support ticket metrics, sentiment distributions, average confidence scores, and agent workload data.
-*   **⚠️ Auto-Escalation Engine**: Automatically flags tickets for human engineers with recommended support actions and drafted responses when confidence drops below `0.7` or sentiment is classified as `critical`/`frustrated`.
+* **🔒 Production Authentication & Session Management**: Scalekit OAuth Single Sign-On (SSO) with secure, `httpOnly` JWT session cookies preventing XSS token theft. Includes a dev-only E2E authentication bypass for local testing.
+* **🤖 Multi-Agent Orchestration (LangGraph + LangChain)**:
+  * **Ingestion Agent**: Validates ticket input, parses metadata, and evaluates raw customer sentiment.
+  * **Intent Agent**: Classifies ticket category (`technical/integration`, `billing`, `account`, `feature_request`) and determines whether external search is required.
+  * **Knowledge Agent**: Performs native **pgvector cosine similarity** search against chunked internal knowledge articles stored in PostgreSQL.
+  * **Search Agent**: Executes live **Tavily web search** queries, extracting real-time documentation URLs and grounding citations.
+  * **Response Agent**: Multi-model synthesis producing structured Tier-2/Tier-3 Markdown responses with greetings, root-cause diagnostics, and actionable steps.
+  * **Guardrails & Accounting**: Calculates defensible hybrid confidence scores, token usage, real-time cost estimation in USD, and executes automated Tier-2 human escalation protocols.
+* **⚡ Vector Database Grounding with PostgreSQL & pgvector**: Native 1536-dimensional vector embeddings with Google Gemini (`gemini-embedding-001`) and OpenAI (`text-embedding-3-small`), indexing chunked articles directly in PostgreSQL (Neon).
+* **🔌 Multi-Model Failover & Resiliency**:
+  * Primary: Google Gemini (`gemini-2.5-flash`)
+  * Secondary: OpenAI (`gpt-4o-mini`)
+  * Fallback: Groq Cloud (`qwen/qwen3.8-27b` / `llama-3.3-70b-versatile`)
+* **📊 Live Telemetry & Executive Analytics**: Interactive dashboard with real-time SLA metrics, sentiment distributions, token cost tracking, and model latency breakdowns.
+* **⚠️ Defensible Hybrid Escalation**: Escalates tickets to technical human leads only when blended confidence falls below $70\%$ or when customer sentiment is classified as `critical` or `frustrated`.
 
 ---
 
 ## 🏗️ Architecture
 
-The app uses a decoupled Client-Server architecture. The server acts as an API gateway, session controller, and LLM coordinator, while the client handles routes, analytics displays, and support workflow interaction.
-
 ```mermaid
 graph TD
-    User([Customer / Agent]) <--> |HTTP / JSON| FE[React Frontend]
-    FE <--> |JWT Cookies / REST API| BE[Express Backend]
+    User([Customer / Support Agent]) <--> |HTTP / JSON| FE[React 19 Frontend]
+    FE <--> |JWT Cookies / REST API| BE[FastAPI Python Backend]
     BE <--> |Authenticate User| Scalekit[Scalekit OAuth]
-    BE <--> |Read / Write Tickets & KB| DB[(db.json LowDB)]
+    BE <--> |Async SQL / pgvector| NeonDB[(PostgreSQL + pgvector Neon)]
     
-    subgraph "Agentic Pipeline (support.routes.ts)"
-        BE --> |POST /api/support/run| Intent[Intent Agent]
-        Intent --> Knowledge[Knowledge Agent]
-        Knowledge --> Search{Search Agent}
-        Search -->|Technical Query| Tavily[Tavily Search API]
-        Search -->|General Query| Prompt[Build Context Prompt]
-        Tavily --> Prompt
-        Prompt --> LLM[LLM Coordinator]
-        
-        subgraph "LLM Selection"
-            LLM -->|Option 1| OpenAI[OpenAI GPT-4o-mini]
-            LLM -->|Option 2| Gemini[Google Gemini 3 Flash]
-            Gemini -.->|Failover Fallback| Groq[Groq Llama-3.3]
-        end
-        
-        OpenAI & Gemini & Groq --> Validation[Response Agent: Zod Schema & Link Verification]
-        Validation --> Escalation{Confidence < 0.7 OR Sentiment Critical/Frustrated?}
+    subgraph "LangGraph Agentic Pipeline"
+        BE --> Ingestion[1. Ingestion Agent: Sentiment & Sanitization]
+        Ingestion --> Intent[2. Intent Agent: Classification & Routing]
+        Intent --> Knowledge[3. Knowledge Agent: pgvector Cosine Search]
+        Knowledge --> Search{4. Search Agent}
+        Search -->|Web Search Needed| Tavily[Tavily Search API]
+        Search -->|Internal Only| Context[Grounding & Context Aggregator]
+        Tavily --> Context
+        Context --> Synthesis[5. AI Synthesis: Gemini / OpenAI / Groq]
+        Synthesis --> Guardrails[6. Guardrails & Cost Accounting]
+        Guardrails --> Escalation{Confidence < 0.70 OR Sentiment Critical/Frustrated?}
         Escalation -->|Yes| EscTicket[Status: Escalated + Suggested Actions]
-        Escalation -->|No| SafeTicket[Status: Pending / Closed]
+        Escalation -->|No| OpenTicket[Status: Open / Pending]
     end
 ```
 
@@ -60,43 +53,54 @@ graph TD
 
 ## 🧰 Tech Stack
 
-| Component | Technology / Library | Description |
+| Layer | Technologies | Description |
 | :--- | :--- | :--- |
-| **Frontend** | React, TypeScript, Vite | Fast, responsive single-page web app. |
-| | React Router v6 | Declarative layout, routing, and route protections. |
-| | Tailwind CSS | Utility-first clean CSS styling with customizable tokens. |
-| | Recharts | Interactive dashboard visualizations (analytics). |
-| **Backend** | Node.js, Express, TypeScript | Highly extensible server API with structured routes. |
-| | LangChain, `@langchain/langgraph` | Workflow state machines, agent frameworks, and LLM calls. |
-| | Zod | Runtime schema verification and strict type enforcement. |
-| | JSON Web Tokens (JWT) | Cookie-based session validation. |
-| | Lowdb / File-based JSON | Lightweight, mockable schema-driven JSON database. |
+| **Backend** | Python 3.12+, FastAPI, Uvicorn | High-performance asynchronous REST API. |
+| **Agent Framework** | LangGraph, LangChain Core | Declarative state machines and agent coordination. |
+| **Database & Vectors** | PostgreSQL 16, pgvector, SQLAlchemy 2.0 (asyncpg), Alembic | Relational storage and high-speed vector similarity indexing. |
+| **Authentication** | Scalekit Python SDK, PyJWT, Python-Jose | Enterprise SSO and secure cookie-based session JWTs. |
+| **External Grounding** | Tavily Search API | High-accuracy technical search and verified citation URLs. |
+| **LLM Providers** | Google GenAI SDK, OpenAI SDK, Groq SDK | Multi-model synthesis with automated failover. |
+| **Frontend** | React 19, TypeScript, Vite, Tailwind CSS, Lucide Icons | Responsive UI with real-time agent execution visualizer. |
+| **Analytics & UI** | Recharts, Radix UI, TanStack Query | Dynamic telemetry, SLA gauges, and interactive timelines. |
 
 ---
 
-## 📁 Key File Map
+## 📁 Repository Layout
 
-Feel free to browse the main components of the codebase:
-
-*   **Server Backend**:
-    *   [index.ts](file:///c:/Users/aggis/Desktop/fullstack_ai_Supportdesk_Agent_with_longchain/server/src/index.ts) — Express entry point and server configuration.
-    *   [support.routes.ts](file:///c:/Users/aggis/Desktop/fullstack_ai_Supportdesk_Agent_with_longchain/server/src/support/support.routes.ts) — The heart of the multi-agent AI execution, fallback flows, and database updates.
-    *   [support.schema.ts](file:///c:/Users/aggis/Desktop/fullstack_ai_Supportdesk_Agent_with_longchain/server/src/support/support.schema.ts) — Zod schemas validating API requests and structured AI agent responses.
-    *   [db.ts](file:///c:/Users/aggis/Desktop/fullstack_ai_Supportdesk_Agent_with_longchain/server/src/support/db.ts) — Database helper layer managing articles, tickets, messages, and analytics logs.
-    *   [auth.routes.ts](file:///c:/Users/aggis/Desktop/fullstack_ai_Supportdesk_Agent_with_longchain/server/src/auth/auth.routes.ts) — OAuth registration endpoints and callback handlers.
-    *   [e2e.routes.ts](file:///c:/Users/aggis/Desktop/fullstack_ai_Supportdesk_Agent_with_longchain/server/src/auth/e2e.routes.ts) — Dev-only authentication routes allowing simulated user registration for tests.
-*   **Client Frontend**:
-    *   [App.tsx](file:///c:/Users/aggis/Desktop/fullstack_ai_Supportdesk_Agent_with_longchain/client/src/App.tsx) — Front-end routing structure and private/public layout definitions.
-    *   [support.tsx](file:///c:/Users/aggis/Desktop/fullstack_ai_Supportdesk_Agent_with_longchain/client/src/pages/support.tsx) — Main ticket management platform, chat logs, and manual ticketing.
-    *   [landing.tsx](file:///c:/Users/aggis/Desktop/fullstack_ai_Supportdesk_Agent_with_longchain/client/src/pages/landing.tsx) — Interactive live dashboard showing support analytics, SLA trends, and agent queues.
+```text
+├── backend-python/            # Production Python / FastAPI backend
+│   ├── alembic/               # Database migrations
+│   ├── app/
+│   │   ├── agents/            # LangGraph multi-agent graph & prompt engineering
+│   │   ├── api/v1/            # FastAPI REST routes (auth, support, health)
+│   │   ├── core/              # Config, security, exceptions, logging
+│   │   ├── db/                # SQLAlchemy models, pgvector Vector type, session
+│   │   ├── middleware/        # Request ID tracing, CORS
+│   │   ├── repositories/      # Clean database repository layer
+│   │   ├── schemas/           # Pydantic v2 domain & API schemas
+│   │   └── services/          # LLM, pgvector Retrieval, Search, and Pricing services
+│   ├── tests/                 # Complete Pytest test suite (unit, security, integration)
+│   ├── pyproject.toml         # Dependencies and project metadata
+│   └── Dockerfile             # Container configuration
+├── client/                    # React 19 / TypeScript single-page app
+│   ├── src/
+│   │   ├── components/        # Support agent execution UI, dialogs, analytics
+│   │   ├── pages/             # Support desk platform and executive dashboard
+│   │   └── lib/               # API clients and utility functions
+│   └── package.json           # Frontend dependencies
+├── docker-compose.yml         # Multi-container orchestration (Postgres pgvector + App)
+├── README.md                  # Project documentation
+└── TESTING.md                 # Testing instructions
+```
 
 ---
 
 ## ⚙️ Environment Variables
 
-### Backend Configuration
+### Backend Configuration (`backend-python/.env`)
 
-Create a `.env` file under the `server` directory:
+Copy `backend-python/.env.example` to `backend-python/.env`:
 
 ```env
 PORT=5000
@@ -106,26 +110,36 @@ FRONTEND_URL=http://localhost:5173
 
 # Authentication Sessions
 SESSION_COOKIE_NAME=session
-SESSION_JWT_SECRET=your_jwt_signing_secret_here
-
-# LLM Providers API Keys
-OPENAI_API_KEY=sk-proj-your-openai-key
-GEMINI_API_KEY=AIzaSy-your-gemini-key
-TAVILY_API_KEY=tvly-your-tavily-search-key
-GROQ_API_KEY=gsk_your-fallback-groq-key
+SESSION_JWT_SECRET=your_jwt_signing_secret_here_32chars_min!
+E2E_TEST_MODE=true
 
 # Scalekit OAuth Integration
-SCALEKIT_ENVIRONMENT_URL=https://your-scalekit-domain.scalekit.com
-SCALEKIT_CLIENT_ID=your_client_id
-SCALEKIT_CLIENT_SECRET=your_client_secret
+SCALEKIT_ENVIRONMENT_URL=https://your-domain.scalekit.dev
+SCALEKIT_CLIENT_ID=your_scalekit_client_id
+SCALEKIT_CLIENT_SECRET=your_scalekit_client_secret
 
-# Dev/Testing Configuration
-E2E_TEST_MODE=true
+# AI Model Provider Keys
+OPENAI_API_KEY=sk-proj-your-openai-key
+GEMINI_API_KEY=AIzaSy_your_gemini_key
+GEMINI_MODEL=gemini-2.5-flash
+GROQ_API_KEY=gsk_your_groq_key
+GROQ_MODEL=qwen/qwen3.8-27b
+TAVILY_API_KEY=tvly-your-tavily-search-key
+
+# PostgreSQL with pgvector (e.g., Neon or local pgvector)
+DATABASE_URL=postgresql+asyncpg://neondb_owner:password@ep-your-pooler.us-east-2.aws.neon.tech/neondb?ssl=require
+DATABASE_URL_SYNC=postgresql+psycopg://neondb_owner:password@ep-your-host.us-east-2.aws.neon.tech/neondb?sslmode=require
+
+# pgvector Embedding Settings
+EMBEDDING_MODEL=text-embedding-3-small
+EMBEDDING_DIMENSIONS=1536
+CHUNK_SIZE=512
+CHUNK_OVERLAP=64
+RETRIEVAL_TOP_K=5
+SIMILARITY_THRESHOLD=0.3
 ```
 
-### Frontend Configuration
-
-Create a `.env` file under the `client` directory:
+### Frontend Configuration (`client/.env`)
 
 ```env
 VITE_BACKEND_URL=http://localhost:5000
@@ -135,80 +149,101 @@ VITE_BACKEND_URL=http://localhost:5000
 
 ## 🚀 Running Locally
 
-Ensure you have [Node.js](https://nodejs.org/) installed (v18+ recommended).
+### 1. Start the Python FastAPI Backend
 
-### 1. Initialize and Start the Backend Server
+Ensure Python 3.12+ is installed:
 
 ```bash
-# Navigate to server folder
-cd server
+# Navigate to the backend directory
+cd backend-python
+
+# Create and activate a virtual environment
+python -m venv .venv
+# On Windows:
+.venv\Scripts\activate
+# On Linux/macOS:
+# source .venv/bin/activate
 
 # Install dependencies
-npm install
+pip install -e .
 
-# Start development server
-npm run dev
+# Start the server with hot-reload
+uvicorn app.main:app --host 127.0.0.1 --port 5000 --reload
 ```
-The server will boot on [http://localhost:5000](http://localhost:5000).
+The FastAPI backend will start on **`http://localhost:5000`** (Swagger docs available at `http://localhost:5000/docs`).
 
-### 2. Initialize and Start the React App
+### 2. Start the React Frontend
+
+Open a second terminal:
 
 ```bash
-# Open a new terminal and navigate to client folder
+# Navigate to the frontend directory
 cd client
 
 # Install dependencies
 npm install
 
-# Start Vite dev server
+# Start the Vite development server
 npm run dev
 ```
-The frontend will start on [http://localhost:5173](http://localhost:5173).
+The client will start on **`http://localhost:5173`**.
 
 ---
 
 ## 📡 API Endpoints Reference
 
-### Public Endpoints
-*   `GET /status` — Returns server health status. `{ "ok": true }`
-*   `GET /auth/login` — Redirects user to Scalekit OAuth authorization URL.
-*   `GET /auth/callback` — Handles post-auth tokens, sets session cookies, and redirects back to the dashboard.
+### Public & Auth Endpoints
+* `GET /status` — Server health check (`{"ok": true, "status": "UP"}`).
+* `GET /auth/login` — Redirects browser to Scalekit OAuth authorization URL.
+* `GET /auth/callback` — Handles OAuth callback, issues session cookie, redirects to frontend dashboard.
+* `POST /auth/e2e/login` — Dev-only testing route (active when `E2E_TEST_MODE=true`).
+* `GET /auth/me` — Returns current authenticated user profile (`id`, `email`, `name`, `role`).
+* `POST /auth/logout` — Invalidates session and clears cookie.
 
-### Dev/Testing Endpoints
-*   `POST /auth/e2e/login` — Accessible only when `E2E_TEST_MODE=true` and `NODE_ENV=development`. Expects a JSON body describing the test user and issues a signed session cookie.
-
-### Protected Endpoints (Requires Valid Session Cookie)
-*   `GET /auth/me` — Returns the details of the currently authenticated session user.
-*   `POST /auth/logout` — Destroys the cookie session.
-*   `GET /api/support/analytics` — Fetches aggregate support desk reports (SLA, ticket status distributions, agent performance).
-*   `GET /api/support/tickets` — Lists all tickets in the system.
-*   `POST /api/support/tickets` — Creates a new manual ticket.
-*   `GET /api/support/tickets/:id` — Details of a specific ticket, including dialogue history.
-*   `PATCH /api/support/tickets/:id` — Modifies status (e.g. changing status to `escalated`, `pending`, `closed`).
-*   `GET /api/support/kb` — Lists all articles from the Internal Knowledge Base.
-*   `POST /api/support/kb` — Adds a new article to the Knowledge Base.
-*   `DELETE /api/support/kb/:id` — Deletes an article from the Knowledge Base.
-*   `POST /api/support/run` — Executes the LangGraph agent pipeline. Validates prompt text, conducts optional search, prompts the selected LLM, runs fallback if needed, filters bad citations, handles database updates, and manages escalation checks.
+### Support & AI Agent Endpoints (Session Protected)
+* `POST /api/support/run` — Executes the 6-stage LangGraph multi-agent pipeline:
+  * Ingestion & sentiment classification
+  * Intent classification & routing
+  * pgvector semantic retrieval from Neon
+  * Real-time Tavily search grounding (with citation filtering)
+  * Multi-model synthesis (Gemini / OpenAI / Groq)
+  * Defensible hybrid confidence calculation, token cost accounting, and auto-escalation check.
+* `GET /api/support/tickets` — Lists all support tickets with messages, telemetry, and status.
+* `POST /api/support/tickets` — Creates a new ticket manually.
+* `GET /api/support/tickets/{id}` — Retrieves detailed ticket dialogue history and execution steps.
+* `PATCH /api/support/tickets/{id}` — Updates ticket status (`open`, `pending`, `escalated`, `closed`).
+* `GET /api/support/kb` — Retrieves all knowledge base articles.
+* `POST /api/support/kb` — Creates a new article and automatically indexes 1536-dim vector chunks in pgvector.
+* `PATCH /api/support/kb/{id}` — Modifies an article and re-indexes vector embeddings.
+* `DELETE /api/support/kb/{id}` — Deletes an article and its vector chunks.
+* `GET /api/support/analytics` — Returns aggregate system telemetry, SLA distributions, sentiment analysis, and token cost breakdown.
 
 ---
 
 ## 🧪 Testing
 
-The codebase includes standard end-to-end authentication tests inside the `testsprite_tests` directory.
+Run the automated pytest test suite in `backend-python`:
 
-To run these tests, refer to the [TESTING.md](file:///c:/Users/aggis/Desktop/fullstack_ai_Supportdesk_Agent_with_longchain/TESTING.md) guide.
+```bash
+cd backend-python
+.\.venv\Scripts\python.exe -m pytest tests/ -v
+```
 
-Key test coverage includes:
-1. Public API accessibility verification.
-2. 401 Unauthorized exceptions on guarded routes.
-3. Cookie verification and session generation.
-4. Token parsing validation.
+**Test Coverage**:
+* `tests/unit/` — Unit tests for authentication, configuration, and health endpoints.
+* `tests/security/` — Security tests for session cookies, token expiration, secret validation, and production mode locks.
+* `tests/integration/` — Full end-to-end integration tests for tickets, knowledge base pgvector retrieval, telemetry repositories, and the support workflow.
 
 ---
 
-## 🎯 Design Decisions
+## 🐳 Docker Deployment
 
-1.  **Security Gating**: Using `httpOnly` cookie flags prevents browser-side Javascript from reading the JWT token, eliminating common XSS vectors.
-2.  **Deterministic AI Boundaries**: Rather than returning free-form text, the LLM output is structurally validated using a Zod schema `DraftSchema` definition. This ensures that properties like `confidenceScore` and `sentiment` are consistently typed.
-3.  **Search Filtering & Validation**: Any citations/links in the output are validated against the actual URLs fetched by the Search Agent. Hallucinated links generated by the LLM are stripped out automatically.
-4.  **Provider Failover**: Production agents cannot afford timeouts. If Gemini API requests fail during agent runs, the system automatically redirects instructions to Groq/Llama configurations ensuring high uptime.
+To run the entire system (PostgreSQL with pgvector, FastAPI Backend, and React Frontend) with Docker:
+
+```bash
+docker compose up --build
+```
+This starts:
+- **Neon-compatible Postgres (pgvector)** on port `5432`
+- **FastAPI Python Backend** on port `5000`
+- **React Frontend** on port `5173`

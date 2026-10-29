@@ -1,0 +1,58 @@
+[project]
+name = "supportdesk-backend"
+version = "0.1.0"
+description = "AI Support Desk Agent — Python/FastAPI Backend"
+requires-python = ">=3.12,<3.15"
+license = "MIT"
+
+dependencies = [
+    # Web Framework
+    "fastapi>=0.115.0,<1.0",
+    "uvicorn[standard]>=0.32.0,<1.0",
+    "pydantic>=2.10.0,<3",
+    "pydantic-settings>=2.7.0,<3",
+    "python-dotenv>=1.0.0,<2",
+    "python-jose[cryptography]>=3.3.0,<4",
+    "httpx>=0.28.0,<1.0",
+
+    # Database & Migrations
+    "sqlalchemy[asyncio]>=2.0.36,<2.1",
+    "asyncpg>=0.30.0,<1.0",
+    "alembic>=1.14.0,<2.0",
+    "pgvector>=0.3.6,<1.0",
+
+    # AI / LLM Providers
+    "langchain-core>=0.3.0,<1.0",
+    "langgraph>=0.4.0,<1.0",
+    "langchain-google-genai>=2.1.0,<3",
+    "langchain-openai>=0.3.0,<1.0",
+    "langchain-community>=0.3.0,<1.0",
+    "tiktoken>=0.8.0,<1.0",
+
+    # Document Processing
+    "langchain-text-splitters>=0.3.0,<1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0,<9",
+    "pytest-asyncio>=0.24.0,<1.0",
+    "pytest-cov>=6.0,<7",
+    "ruff>=0.8.0,<1.0",
+]
+
+[build-system]
+requires = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+

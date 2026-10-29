@@ -1,5 +1,94 @@
-node_modules
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.tox/
+
+# Node.js & React Frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+client/dist/
+client/dist-ssr/
+client/.vite/
+
+# Environment Variables & Secrets (NEVER COMMIT CREDENTIALS)
 .env
+.env.*
+!.env.example
+backend-python/.env
+client/.env.local
+client/.env.*.local
+
+# Databases & Local State
+*.db
+*.sqlite
+*.sqlite3
+backend-python/supportdesk.db
+server/db.json
+server/db.tmp.json
 branch_structure.json
+
+# Temporary scripts & Batch files
 temp_auto_push.bat
 temp_interactive_push.bat
+*.tmp
+
+# IDE & Editor Settings
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
