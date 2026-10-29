@@ -172,3 +172,4 @@ async def test_only_admin_can_clear_all_tickets(
     admin_resp = await admin_client.post("/api/support/tickets/clear")
     assert admin_resp.status_code == 200
     assert admin_resp.json()["tickets"] == []
+

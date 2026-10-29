@@ -29,3 +29,4 @@ DEFAULT_ARTICLES = [
         "content": "Webhook verification errors usually happen when the payload is modified or parsed before hashing. Verify that: 1. You are using the raw request body buffer to compute the HMAC-SHA256 signature. 2. The signing secret matches the secret from your developer portal. 3. The signature algorithm is SHA-256.",
     },
 ]
+
