@@ -27,6 +27,9 @@ dependencies = [
     "langchain-google-genai>=2.1.0,<3",
     "langchain-openai>=0.3.0,<1.0",
     "langchain-community>=0.3.0,<1.0",
+    "google-genai>=0.1.0",
+    "tavily-python>=0.5.0",
+    "scalekit-sdk-python>=2.0.0",
     "tiktoken>=0.8.0,<1.0",
 
     # Document Processing
@@ -44,6 +47,11 @@ dev = [
 [build-system]
 requires = ["setuptools>=75.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+exclude = ["alembic*", "tests*"]
 
 [tool.ruff]
 target-version = "py312"
