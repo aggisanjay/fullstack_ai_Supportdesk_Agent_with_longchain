@@ -1,6 +1,7 @@
 import { apiGet, apiPost, BACKEND_URL } from "@/lib/api";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import AppLoadingScreen from "@/components/common/AppLoadingScreen";
 
 type User = {
   id: string;
@@ -134,7 +135,14 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }, [loading, navigate, user, location.pathname]);
 
-  if (loading) return <div>Checking session...</div>;
+  if (loading) {
+    return (
+      <AppLoadingScreen
+        isLoading={true}
+        customMessage="Verifying SupportDesk Session..."
+      />
+    );
+  }
   if (!user) return null;
 
   return <>{children}</>;

@@ -161,6 +161,27 @@ html {
   }
 }
 
+/* Any.do Productivity Loading Keyframes */
+@keyframes anydo-bar {
+  0%, 100% {
+    transform: scaleY(0.4);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleY(1.2);
+    opacity: 1;
+  }
+}
+
+@keyframes anydo-draw {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 .typing-dot-1 {
   animation: typingDot 1.4s infinite ease-in-out;
 }

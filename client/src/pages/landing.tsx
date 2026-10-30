@@ -79,6 +79,287 @@ function BrandLogo({ className = "w-8 h-8" }: { className?: string }) {
   );
 }
 
+// Spotlight Card Component (Cursor-tracking radial spotlight glow & dynamic perimeter stroke)
+function SpotlightCard({
+  children,
+  className = "",
+  spotlightColor = "rgba(255, 107, 10, 0.22)",
+  borderColor = "#FF6B0A",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  spotlightColor?: string;
+  borderColor?: string;
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    setCoords({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`group relative rounded-2xl p-[1px] overflow-hidden transition-all duration-500 ease-out ${
+        isHovered
+          ? "shadow-[0_20px_60px_-15px_rgba(255,107,10,0.28)] -translate-y-1"
+          : "shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
+      } ${className}`}
+    >
+      {/* Base subtle border track */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/[0.12] to-white/[0.04] pointer-events-none" />
+
+      {/* Spotlight dynamic glowing stroke following cursor */}
+      <div
+        className="pointer-events-none absolute -inset-px rounded-2xl transition-opacity duration-300 ease-out"
+        style={{
+          opacity: isHovered ? 1 : 0,
+          background: `radial-gradient(340px circle at ${coords.x}px ${coords.y}px, ${borderColor} 0%, rgba(255, 107, 10, 0.45) 30%, transparent 70%)`,
+        }}
+      />
+
+      {/* Idle ambient corner stroke accent (subtle breathing spotlight sweep) */}
+      <div
+        className={`pointer-events-none absolute -inset-px rounded-2xl transition-opacity duration-700 ease-in-out ${
+          isHovered ? "opacity-0" : "opacity-35"
+        }`}
+        style={{
+          background: `radial-gradient(240px circle at 90% 10%, rgba(255, 107, 10, 0.35), transparent 70%)`,
+        }}
+      />
+
+      {/* Inner card body */}
+      <div className="relative rounded-[calc(1rem-1px)] bg-gradient-to-b from-[#141416] to-[#0D0D0E] h-full overflow-hidden">
+        {/* Spotlight light pool inside card surface following cursor */}
+        <div
+          className="pointer-events-none absolute inset-0 transition-opacity duration-300 ease-out"
+          style={{
+            opacity: isHovered ? 1 : 0,
+            background: `radial-gradient(420px circle at ${coords.x}px ${coords.y}px, ${spotlightColor} 0%, rgba(255, 107, 10, 0.05) 45%, transparent 75%)`,
+          }}
+        />
+
+        {/* Idle ambient light pool */}
+        <div
+          className={`pointer-events-none absolute inset-0 transition-opacity duration-700 ease-in-out ${
+            isHovered ? "opacity-0" : "opacity-20"
+          }`}
+          style={{
+            background: `radial-gradient(300px circle at 90% 10%, rgba(255, 107, 10, 0.25), transparent 70%)`,
+          }}
+        />
+
+        {/* Card content slot */}
+        <div className="relative z-10 h-full">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Animated SVG Motion Diagram: How SupportDesk AI Generates a Grounded Response
+function ResponseGenerationVisual() {
+  return (
+    <SpotlightCard className="w-full">
+      <div className="p-6 flex flex-col justify-between h-full bg-[#101013]/95 backdrop-blur-xl">
+        {/* Card Header with Live Telemetry Badge */}
+        <div className="flex items-center justify-between pb-4 border-b border-white/[0.08]">
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            </span>
+            <span className="text-xs font-semibold tracking-tight text-white">
+              Autonomous Response Pipeline
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/[0.04] border border-white/[0.08] text-gray-300">
+            <span className="text-[#FF6B0A]">LangGraph</span> • <span>pgvector</span>
+          </div>
+        </div>
+
+        {/* Animated SVG Graph Architecture with Native Motion Particles */}
+        <div className="relative py-4 my-1">
+          <svg
+            className="w-full h-auto overflow-visible"
+            viewBox="0 0 480 180"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="glow-orange" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#FF6B0A" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#FFA057" stopOpacity="0.8" />
+              </linearGradient>
+              <linearGradient id="glow-emerald" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#10B981" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#34D399" stopOpacity="0.8" />
+              </linearGradient>
+              <filter id="svg-blur" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2.5" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+
+            {/* Circuit Background Connection Paths */}
+            {/* 1. Ingestion to Intent Classifier */}
+            <path
+              d="M 80 90 L 140 90"
+              stroke="rgba(255, 255, 255, 0.12)"
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+            {/* 2A. Classifier to pgvector (upper branch) */}
+            <path
+              d="M 215 90 C 245 90, 245 42, 275 42"
+              stroke="rgba(255, 255, 255, 0.12)"
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+            {/* 2B. Classifier to Tavily (lower branch) */}
+            <path
+              d="M 215 90 C 245 90, 245 138, 275 138"
+              stroke="rgba(255, 255, 255, 0.12)"
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+            {/* 3A. pgvector to LLM Synthesis */}
+            <path
+              d="M 355 42 C 385 42, 385 90, 410 90"
+              stroke="rgba(255, 255, 255, 0.12)"
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+            {/* 3B. Tavily to LLM Synthesis */}
+            <path
+              d="M 355 138 C 385 138, 385 90, 410 90"
+              stroke="rgba(255, 255, 255, 0.12)"
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+
+            {/* Traveling SVG Motion Particle Lights */}
+            <circle r="3" fill="#FF6B0A" filter="url(#svg-blur)">
+              <animateMotion
+                dur="2.2s"
+                repeatCount="indefinite"
+                path="M 80 90 L 140 90"
+              />
+            </circle>
+
+            <circle r="3" fill="#10B981" filter="url(#svg-blur)">
+              <animateMotion
+                dur="2.2s"
+                begin="0.5s"
+                repeatCount="indefinite"
+                path="M 215 90 C 245 90, 245 42, 275 42"
+              />
+            </circle>
+
+            <circle r="3" fill="#F59E0B" filter="url(#svg-blur)">
+              <animateMotion
+                dur="2.2s"
+                begin="0.7s"
+                repeatCount="indefinite"
+                path="M 215 90 C 245 90, 245 138, 275 138"
+              />
+            </circle>
+
+            <circle r="3" fill="#38BDF8" filter="url(#svg-blur)">
+              <animateMotion
+                dur="2.2s"
+                begin="1.2s"
+                repeatCount="indefinite"
+                path="M 355 42 C 385 42, 385 90, 410 90"
+              />
+            </circle>
+
+            <circle r="3" fill="#A855F7" filter="url(#svg-blur)">
+              <animateMotion
+                dur="2.2s"
+                begin="1.4s"
+                repeatCount="indefinite"
+                path="M 355 138 C 385 138, 385 90, 410 90"
+              />
+            </circle>
+
+            {/* Node 1: Ingestion */}
+            <g transform="translate(10, 68)">
+              <rect width="70" height="44" rx="8" fill="#18181B" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+              <text x="35" y="20" fill="#E4E4E7" fontSize="9.5" fontWeight="600" textAnchor="middle">Ingestion</text>
+              <text x="35" y="33" fill="#A1A1AA" fontSize="8" fontFamily="monospace" textAnchor="middle">Ticket #104</text>
+            </g>
+
+            {/* Node 2: Classifier */}
+            <g transform="translate(142, 68)">
+              <rect width="73" height="44" rx="8" fill="#18181B" stroke="rgba(255,107,10,0.4)" strokeWidth="1" />
+              <text x="36.5" y="20" fill="#FFA057" fontSize="9.5" fontWeight="600" textAnchor="middle">Router</text>
+              <text x="36.5" y="33" fill="#A1A1AA" fontSize="8" fontFamily="monospace" textAnchor="middle">Auth Intent</text>
+            </g>
+
+            {/* Node 3A: pgvector */}
+            <g transform="translate(275, 20)">
+              <rect width="80" height="44" rx="8" fill="#18181B" stroke="rgba(16,185,129,0.4)" strokeWidth="1" />
+              <text x="40" y="20" fill="#34D399" fontSize="9.5" fontWeight="600" textAnchor="middle">pgvector</text>
+              <text x="40" y="33" fill="#A1A1AA" fontSize="8" fontFamily="monospace" textAnchor="middle">Cosine 0.94</text>
+            </g>
+
+            {/* Node 3B: Tavily Search */}
+            <g transform="translate(275, 116)">
+              <rect width="80" height="44" rx="8" fill="#18181B" stroke="rgba(245,158,11,0.4)" strokeWidth="1" />
+              <text x="40" y="20" fill="#FBBF24" fontSize="9.5" fontWeight="600" textAnchor="middle">Tavily Web</text>
+              <text x="40" y="33" fill="#A1A1AA" fontSize="8" fontFamily="monospace" textAnchor="middle">Docs RFC 6749</text>
+            </g>
+
+            {/* Node 4: LLM Synthesis */}
+            <g transform="translate(410, 68)">
+              <rect width="66" height="44" rx="8" fill="#18181B" stroke="rgba(56,189,248,0.4)" strokeWidth="1" />
+              <text x="33" y="20" fill="#38BDF8" fontSize="9.5" fontWeight="600" textAnchor="middle">Synthesis</text>
+              <text x="33" y="33" fill="#A1A1AA" fontSize="8" fontFamily="monospace" textAnchor="middle">Gemini 2.5</text>
+            </g>
+          </svg>
+        </div>
+
+        {/* Live Grounded Output Preview Card */}
+        <div className="mt-2 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px]">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Grounded AI Response Draft
+            </span>
+            <span className="font-mono text-[10px] text-gray-400">1,280ms • 94% Confidence</span>
+          </div>
+          <p className="text-gray-300 leading-relaxed font-mono text-[11px] mb-2.5">
+            "Identified root cause: Client secret rotation invalidated authorization code callbacks. Updating your redirect URI parameters in the Scalekit portal matches Runbook #1042 with 100% verified documentation."
+          </p>
+          <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] text-[10px] font-mono">
+            <div className="flex items-center gap-1.5">
+              <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                Runbook #1042
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/20 text-yellow-400">
+                RFC 6749 Verified
+              </span>
+            </div>
+            <span className="text-gray-400 font-mono">$0.0004 Token Cost</span>
+          </div>
+        </div>
+      </div>
+    </SpotlightCard>
+  );
+}
+
 // 5 Brand SVGs for the continuous marquee
 const brandLogos = [
   {
@@ -401,7 +682,7 @@ export default function LandingPage() {
       {/* 2. Hero Section (id="about") */}
       <section
         id="about"
-        className="min-h-screen flex flex-col items-center justify-center pt-32 pb-20 relative z-0 overflow-hidden"
+        className="min-h-screen flex flex-col justify-center pt-28 pb-16 relative z-0 overflow-hidden"
       >
         {/* Background Video with Gradient Overlay */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -417,51 +698,83 @@ export default function LandingPage() {
               type="video/mp4"
             />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/80 to-black pointer-events-none" />
         </div>
 
-        <div className="max-w-4xl mx-auto px-6 flex flex-col items-center text-center">
-          {/* Top Badge */}
-          <FadeInUp delay={100}>
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)] mb-8">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-xs font-medium text-gray-300 tracking-tight">LangGraph Multi-Agent Architecture • pgvector Grounding</span>
+        <div className="max-w-7xl mx-auto px-6 w-full pt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            {/* Left Column: Project Title, Subtitle, CTAs & Metrics */}
+            <div className="lg:col-span-6 flex flex-col items-start text-left">
+              {/* Top Badge */}
+              <FadeInUp delay={100}>
+                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md shadow-[0_2px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)] mb-6">
+                  <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-medium text-gray-300 tracking-tight">
+                    LangGraph Multi-Agent Architecture • pgvector Grounded
+                  </span>
+                </div>
+              </FadeInUp>
+
+              {/* Headline */}
+              <FadeInUp delay={200}>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tight mb-6 leading-[1.12] text-white">
+                  Autonomous AI Support Desk for <br className="hidden sm:inline" />
+                  <span className="font-serif italic font-normal text-white">Engineering Teams.</span>
+                </h1>
+              </FadeInUp>
+
+              {/* Sub-text */}
+              <FadeInUp delay={300}>
+                <p className="text-base text-gray-300 max-w-xl mb-8 leading-relaxed font-normal">
+                  Turn complex customer inquiries into high-confidence Tier-2 resolutions in under 2 seconds. Stateful LangGraph agents query 1536-dimensional pgvector runbooks, ground with live Tavily web search, and auto-route with defensible guardrails.
+                </p>
+              </FadeInUp>
+
+              {/* Buttons: Flex row */}
+              <FadeInUp delay={400}>
+                <div className="flex flex-wrap items-center gap-4 mb-10">
+                  <button
+                    onClick={handleAction}
+                    className="group relative inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-black text-sm font-semibold px-6 py-3 rounded-full transition-all cursor-pointer shadow-[0_2px_12px_rgba(255,255,255,0.15)] hover:shadow-[0_4px_20px_rgba(255,255,255,0.25)] active:scale-[0.98]"
+                  >
+                    <span>{user ? "Open Agent Console" : "Get started"}</span>
+                    <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                  <button
+                    onClick={() => scrollToSection("architecture")}
+                    className="inline-flex items-center bg-gradient-to-b from-[#262629] to-[#18181A] hover:from-[#2F2F33] hover:to-[#1F1F22] text-white text-sm font-medium px-6 py-3 rounded-full border border-white/[0.12] shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all cursor-pointer active:scale-[0.98]"
+                  >
+                    Explore Pipeline
+                  </button>
+                </div>
+              </FadeInUp>
+
+              {/* Quick Metrics strip */}
+              <FadeInUp delay={450}>
+                <div className="grid grid-cols-3 gap-6 pt-6 border-t border-white/[0.08] w-full max-w-lg">
+                  <div>
+                    <div className="text-xl font-mono font-bold text-white">&lt; 1.8s</div>
+                    <div className="text-xs text-gray-400 font-mono mt-0.5">Response Latency</div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-mono font-bold text-white">94.2%</div>
+                    <div className="text-xs text-gray-400 font-mono mt-0.5">pgvector Accuracy</div>
+                  </div>
+                  <div>
+                    <div className="text-xl font-mono font-bold text-white">3 LLMs</div>
+                    <div className="text-xs text-gray-400 font-mono mt-0.5">Failover Resilience</div>
+                  </div>
+                </div>
+              </FadeInUp>
             </div>
-          </FadeInUp>
 
-          {/* Headline */}
-          <FadeInUp delay={200}>
-            <h1 className="text-5xl md:text-7xl font-medium tracking-tight mb-6 text-center leading-[1.1] text-white">
-              The intelligence layer <br />
-              for clear <span className="font-serif italic font-normal text-white">decisions.</span>
-            </h1>
-          </FadeInUp>
-
-          {/* Sub-text */}
-          <FadeInUp delay={300}>
-            <p className="text-[16px] text-gray-400 max-w-2xl text-center mb-10 leading-relaxed font-normal">
-              Autonomous customer support orchestrated by stateful LangGraph agents. Grounded by pgvector internal runbooks, live Tavily technical search, and defensible escalation protocols.
-            </p>
-          </FadeInUp>
-
-          {/* Buttons: Flex row */}
-          <FadeInUp delay={400}>
-            <div className="flex flex-row items-center gap-4">
-              <button
-                onClick={handleAction}
-                className="group relative inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-black text-sm font-semibold px-6 py-3 rounded-full transition-all cursor-pointer shadow-[0_2px_12px_rgba(255,255,255,0.15)] hover:shadow-[0_4px_20px_rgba(255,255,255,0.25)] active:scale-[0.98]"
-              >
-                <span>Get started</span>
-                <ArrowRight className="w-4 h-4 text-black group-hover:translate-x-0.5 transition-transform" />
-              </button>
-              <button
-                onClick={() => scrollToSection("features")}
-                className="inline-flex items-center bg-gradient-to-b from-[#262629] to-[#18181A] hover:from-[#2F2F33] hover:to-[#1F1F22] text-white text-sm font-medium px-6 py-3 rounded-full border border-white/[0.12] shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all cursor-pointer active:scale-[0.98]"
-              >
-                Learn more
-              </button>
+            {/* Right Column: Animated SVG Motion Flow showing How Response is Generated */}
+            <div className="lg:col-span-6 w-full">
+              <FadeInUp delay={300}>
+                <ResponseGenerationVisual />
+              </FadeInUp>
             </div>
-          </FadeInUp>
+          </div>
         </div>
 
         {/* Marquee (Trusted by industry leaders) */}
@@ -494,26 +807,26 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 3. Feature 1: AI Chat (id="features") */}
+      {/* 3. Feature 1: Multi-Agent Resolution (id="features") */}
       <section id="features" className="py-24 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left Text */}
           <FadeInUp delay={100}>
             <div className="flex flex-col items-start">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs font-semibold mb-6">
-                <span>✨ AI chat</span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-[#FF6B0A] text-xs font-semibold mb-6">
+                <span>✨ Multi-Agent Resolution</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-semibold tracking-tight text-white mb-6 leading-tight">
-                Where speed meets intelligent conversation.
+                Where speed meets defensible technical grounding.
               </h2>
               <p className="text-base text-gray-400 mb-8 leading-relaxed font-normal">
-                A conversational AI assistant that understands your questions, provides intelligent answers, and helps you get things done fast from casual chats to complex tasks.
+                An autonomous support copilot that investigates runbooks via 1536-dimensional pgvector cosine search, queries live external documentation, and drafts verified Markdown answers before escalating.
               </p>
               <button
                 onClick={handleAction}
                 className="group relative inline-flex items-center gap-2 bg-gradient-to-b from-[#262629] to-[#18181A] hover:from-[#2F2F33] hover:to-[#1F1F22] text-white text-sm font-medium px-6 py-3 rounded-full border border-white/[0.12] shadow-[0_2px_10px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.15)] transition-all cursor-pointer active:scale-[0.98]"
               >
-                <span>Get started</span>
+                <span>{user ? "Open Agent Console" : "Get started"}</span>
                 <ArrowRight className="w-4 h-4 text-gray-400 group-hover:translate-x-0.5 group-hover:text-white transition-all" />
               </button>
             </div>
@@ -614,41 +927,43 @@ export default function LandingPage() {
           </div>
         </FadeInUp>
 
-        {/* 6 Capabilities Cards with Editorial Refinement */}
+        {/* 6 Capabilities Cards with Editorial Refinement & Dynamic Spotlight */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {capabilities.map((cap, idx) => {
             const IconComponent = cap.icon;
             return (
               <FadeInUp key={cap.title} delay={idx * 80}>
-                <div className="group relative p-7 rounded-2xl bg-gradient-to-b from-[#141416] to-[#0D0D0E] border border-white/[0.08] hover:border-white/[0.22] shadow-[0_8px_30px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.12)] transition-all duration-300 flex flex-col justify-between h-full">
-                  <div>
-                    <div className="flex items-center justify-between mb-5">
-                      <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-gray-300 group-hover:text-white group-hover:border-white/[0.18] transition-all">
-                        <IconComponent className="w-5 h-5 text-gray-300 group-hover:text-[#FF6B0A] transition-colors" />
+                <SpotlightCard className="h-full">
+                  <div className="p-7 flex flex-col justify-between h-full">
+                    <div>
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-gray-300 group-hover:text-white group-hover:border-[#FF6B0A]/30 group-hover:bg-[#FF6B0A]/10 transition-all">
+                          <IconComponent className="w-5 h-5 text-gray-300 group-hover:text-[#FF6B0A] transition-colors" />
+                        </div>
+                        <span className="text-[11px] font-mono font-medium text-gray-400 px-2.5 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.06] group-hover:border-[#FF6B0A]/20 group-hover:text-orange-300 transition-colors">
+                          {cap.badge}
+                        </span>
                       </div>
-                      <span className="text-[11px] font-mono font-medium text-gray-400 px-2.5 py-0.5 rounded-md bg-white/[0.03] border border-white/[0.06]">
-                        {cap.badge}
-                      </span>
+                      <h3 className="text-[17px] font-semibold text-white mb-2.5 tracking-tight group-hover:text-orange-50 transition-colors">
+                        {cap.title}
+                      </h3>
+                      <p className="text-[13.5px] text-gray-400 leading-relaxed font-normal">
+                        {cap.desc}
+                      </p>
                     </div>
-                    <h3 className="text-[17px] font-semibold text-white mb-2.5 tracking-tight group-hover:text-gray-100 transition-colors">
-                      {cap.title}
-                    </h3>
-                    <p className="text-[13.5px] text-gray-400 leading-relaxed font-normal">
-                      {cap.desc}
-                    </p>
+                    <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs text-gray-400 font-mono">
+                      <span className="text-gray-400 font-mono text-[11px] group-hover:text-gray-300 transition-colors">{cap.metric}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#FF6B0A] group-hover:translate-x-1.5 transition-all" />
+                    </div>
                   </div>
-                  <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs text-gray-400 font-mono">
-                    <span className="text-gray-400 font-mono text-[11px]">{cap.metric}</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-gray-500 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                  </div>
-                </div>
+                </SpotlightCard>
               </FadeInUp>
             );
           })}
         </div>
       </section>
 
-      {/* 3-Step Agentic Architecture Lifecycle with Tiered Visual Depth */}
+      {/* 3-Step Agentic Architecture Lifecycle with Tiered Visual Depth & Spotlight */}
       <section id="architecture" className="py-24 px-6 max-w-7xl mx-auto border-t border-white/[0.08]">
         <FadeInUp delay={100}>
           <div className="text-center max-w-3xl mx-auto mb-16">
@@ -667,26 +982,28 @@ export default function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {steps.map((st, idx) => (
             <FadeInUp key={st.number} delay={idx * 120}>
-              <div className="group relative p-8 rounded-2xl bg-gradient-to-b from-[#141416] to-[#0D0D0E] border border-white/[0.08] hover:border-white/[0.22] shadow-[0_8px_30px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.12)] transition-all duration-300 flex flex-col justify-between h-full">
-                <div>
-                  <div className="text-3xl font-mono font-bold text-white/30 group-hover:text-white/60 transition-colors mb-6">
-                    {st.number}
+              <SpotlightCard className="h-full">
+                <div className="p-8 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="text-3xl font-mono font-bold text-white/30 group-hover:text-orange-400/60 transition-colors mb-6">
+                      {st.number}
+                    </div>
+                    <h3 className="text-xl font-semibold text-white mb-3 tracking-tight group-hover:text-orange-50 transition-colors">
+                      {st.title}
+                    </h3>
+                    <p className="text-sm text-gray-400 leading-relaxed font-normal">
+                      {st.desc}
+                    </p>
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-3 tracking-tight">
-                    {st.title}
-                  </h3>
-                  <p className="text-sm text-gray-400 leading-relaxed font-normal">
-                    {st.desc}
-                  </p>
+                  <div className="mt-8 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs font-medium text-gray-400">
+                    <span className="flex items-center text-emerald-400">
+                      <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                      <span>State Preserved</span>
+                    </span>
+                    <span className="font-mono text-gray-400 text-[11px] group-hover:text-orange-300/80 transition-colors">{st.agent}</span>
+                  </div>
                 </div>
-                <div className="mt-8 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs font-medium text-gray-400">
-                  <span className="flex items-center text-emerald-400">
-                    <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                    <span>State Preserved</span>
-                  </span>
-                  <span className="font-mono text-gray-400 text-[11px]">{st.agent}</span>
-                </div>
-              </div>
+              </SpotlightCard>
             </FadeInUp>
           ))}
         </div>
