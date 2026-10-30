@@ -120,7 +120,7 @@ def read_session_cookie(request: Request, settings: Settings | None = None) -> S
             role = "admin"
         elif email.lower() in agent_list or any(k in email.lower() for k in ["agent", "support", "lead"]):
             role = "agent"
-        elif not role:
+        elif not role or (role == "customer" and not email.lower().startswith("customer_")):
             role = settings.default_user_role
 
         return SessionUser(
