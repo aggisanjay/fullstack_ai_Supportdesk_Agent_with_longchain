@@ -170,12 +170,14 @@ async def callback(
 
         # Role determination
         if not u_role:
-            if "admin" in u_email.lower():
+            admin_list = [e.strip().lower() for e in settings.admin_emails.split(",") if e.strip()]
+            agent_list = [e.strip().lower() for e in settings.agent_emails.split(",") if e.strip()]
+            if u_email.lower() in admin_list or "admin" in u_email.lower():
                 u_role = "admin"
-            elif any(k in u_email.lower() for k in ["agent", "support", "lead"]):
+            elif u_email.lower() in agent_list or any(k in u_email.lower() for k in ["agent", "support", "lead"]):
                 u_role = "agent"
             else:
-                u_role = "customer"
+                u_role = settings.default_user_role
 
         user_info = SessionUser(id=u_id, email=u_email, name=u_name, role=u_role)
         logger.info("Authenticated Scalekit user: %s <%s> (role=%s, id=%s)", u_name, u_email, u_role, u_id)

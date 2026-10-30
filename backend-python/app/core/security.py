@@ -110,11 +110,24 @@ def read_session_cookie(request: Request, settings: Settings | None = None) -> S
             algorithms=["HS256"],
             options={"verify_exp": True, "verify_iat": False},
         )
+        email = str(decoded.get("email", ""))
+        role = str(decoded.get("role") or "")
+
+        admin_list = [e.strip().lower() for e in settings.admin_emails.split(",") if e.strip()]
+        agent_list = [e.strip().lower() for e in settings.agent_emails.split(",") if e.strip()]
+
+        if email.lower() in admin_list or "admin" in email.lower():
+            role = "admin"
+        elif email.lower() in agent_list or any(k in email.lower() for k in ["agent", "support", "lead"]):
+            role = "agent"
+        elif not role:
+            role = settings.default_user_role
+
         return SessionUser(
             id=str(decoded.get("id", "")),
-            email=str(decoded.get("email", "")),
+            email=email,
             name=decoded.get("name"),
-            role=str(decoded.get("role", "customer")),
+            role=role,
         )
     except Exception as e:
         logger.warning("read_session_cookie decode error: %s", e)

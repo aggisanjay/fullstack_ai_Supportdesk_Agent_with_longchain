@@ -37,6 +37,18 @@ class Settings(BaseSettings):
         description="HMAC-SHA256 signing secret for session JWTs",
     )
     session_jwt_expiry_days: int = Field(default=7, description="JWT token expiry in days")
+    default_user_role: Literal["admin", "agent", "customer"] = Field(
+        default="agent",
+        description="Default role assigned to authenticated users if provider does not specify one",
+    )
+    admin_emails: str = Field(
+        default="",
+        description="Comma-separated list of emails always granted admin role",
+    )
+    agent_emails: str = Field(
+        default="",
+        description="Comma-separated list of emails always granted agent role",
+    )
 
     scalekit_environment_url: str = Field(default="", description="Scalekit environment URL")
     scalekit_client_id: str = Field(default="", description="Scalekit OAuth client ID")
