@@ -38,7 +38,17 @@ async def test_run_stream_emits_real_node_events_then_done(auth_client: AsyncCli
     assert nodes[0] == "ingest_and_classify"
     assert nodes[1] == "retrieve_knowledge"
     assert nodes[-2:] == ["synthesize_draft", "guardrails_and_accounting"]
-    assert all(n in {"ingest_and_classify", "retrieve_knowledge", "ground_web_search", "synthesize_draft", "guardrails_and_accounting"} for n in nodes)
+    assert all(
+        n
+        in {
+            "ingest_and_classify",
+            "retrieve_knowledge",
+            "ground_web_search",
+            "synthesize_draft",
+            "guardrails_and_accounting",
+        }
+        for n in nodes
+    )
 
     elapsed = [d["elapsedMs"] for n, d in events if n == "node"]
     assert elapsed == sorted(elapsed)  # real, monotonic timings
