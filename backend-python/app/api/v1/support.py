@@ -211,7 +211,7 @@ async def run_support_agent_stream(
                 result = await _persist_run(req, user, db, final_state)
                 await db.commit()
                 yield _sse("done", result)
-            except Exception as exc:  # noqa: BLE001 - surfaced to the client as an event
+            except Exception as exc:  # Surfaced to the client as an event
                 await db.rollback()
                 logger.exception("Streaming agent run failed")
                 yield _sse("error", {"message": str(exc) or exc.__class__.__name__})

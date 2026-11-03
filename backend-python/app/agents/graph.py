@@ -10,7 +10,7 @@ import json
 import logging
 import re
 import time
-from typing import Any, Literal
+from typing import Any, ClassVar, Literal
 
 from langgraph.graph import END, START, StateGraph
 from typing_extensions import TypedDict
@@ -786,7 +786,7 @@ class SupportAgentGraph:
         return AgentState(final_state)
 
     # Node that runs after each node (None = finished). The web-search branch is data dependent.
-    _NEXT_NODE: dict[str, str | None] = {
+    _NEXT_NODE: ClassVar[dict[str, str | None]] = {
         "ingest_and_classify": "retrieve_knowledge",
         "ground_web_search": "synthesize_draft",
         "synthesize_draft": "guardrails_and_accounting",
