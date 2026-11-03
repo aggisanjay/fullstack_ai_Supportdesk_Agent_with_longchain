@@ -98,17 +98,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       {/* Backdrop */}
       <div 
         onClick={onClose} 
-        className="fixed inset-0 bg-[#1C1916]/40 backdrop-blur-xs transition-opacity duration-200" 
+        className="fixed inset-0 bg-black/65 backdrop-blur-xs transition-opacity duration-200" 
       />
 
       {/* Modal card */}
-      <div className="relative w-full max-w-md rounded-2xl bg-[#FFFDFA] border border-[#E7DFD5] p-6 sm:p-8 shadow-2xl z-10 space-y-6">
+      <div className="relative w-full max-w-md rounded-2xl bg-[#0e1018] border border-[#242838] p-6 sm:p-8 shadow-2xl z-10 space-y-6">
         
         {/* Close Button */}
         <button
           onClick={onClose}
           aria-label="Close dialog"
-          className="absolute top-5 right-5 h-8 w-8 rounded-lg bg-[#F0EBE3] hover:bg-[#E7DFD5] flex items-center justify-center text-[#6D665F] hover:text-[#1C1916] transition cursor-pointer"
+          className="absolute top-5 right-5 h-8 w-8 rounded-lg bg-[#151826] hover:bg-[#242838] flex items-center justify-center text-[#a3a8bb] hover:text-[#f4f1ea] transition cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
@@ -116,29 +116,29 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         {/* Brand Header */}
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1C1916] text-[#FF6B0A] shadow-xs">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f4f1ea] text-[#FF6B0A] shadow-xs">
               <Bot className="h-4.5 w-4.5" />
             </div>
-            <div className="text-sm font-bold tracking-tight text-[#1C1916] flex items-center">
+            <div className="text-sm font-bold tracking-tight text-[#f4f1ea] flex items-center">
               <span>SupportDesk</span>
               <span className="ml-1 text-[#FF6B0A]">AI</span>
             </div>
-            <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[#26764F] bg-[#E6F4EA] border border-[#A7F3D0] px-2 py-0.5 rounded-full font-mono">
+            <span className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[#5be3a8] bg-[#5be3a81a] border border-[#5be3a840] px-2 py-0.5 rounded-full font-mono">
               <Shield className="h-2.5 w-2.5" />
               Scalekit SSO
             </span>
           </div>
 
-          <h3 className="text-xl font-bold text-[#1C1916] tracking-tight pt-2">
+          <h3 className="text-xl font-bold text-[#f4f1ea] tracking-tight pt-2">
             Sign in to your workspace
           </h3>
-          <p className="text-xs text-[#6D665F] leading-relaxed">
+          <p className="text-xs text-[#a3a8bb] leading-relaxed">
             Access autonomous ticket resolution, live grounding diagnostics, and agent analytics.
           </p>
         </div>
 
         {error && (
-          <div className="p-3 bg-[#FEE2E2] border border-[#FECACA] rounded-xl text-xs text-[#B83C35] font-medium">
+          <div className="p-3 bg-[#ff4d3d1f] border border-[#ff4d3d40] rounded-xl text-xs text-[#ff8a7e] font-medium">
             {error}
           </div>
         )}
@@ -148,10 +148,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           <Button
             onClick={handleScalekitLogin}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#FF6B0A] hover:bg-[#E85B00] text-[#1C1916] font-bold rounded-xl text-xs shadow-xs hover:shadow-sm"
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#FF6B0A] hover:bg-[#E85B00] text-[#05060a] font-bold rounded-xl text-xs shadow-xs hover:shadow-sm"
           >
             {loading ? (
-              <Loader2 className="h-4 w-4 animate-spin text-[#1C1916]" />
+              <Loader2 className="h-4 w-4 animate-spin text-[#f4f1ea]" />
             ) : (
               <>
                 <KeyRound className="h-4 w-4" />
@@ -161,23 +161,23 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </Button>
 
           <div className="relative flex py-2 items-center">
-            <div className="flex-grow border-t border-[#E7DFD5]" />
-            <span className="flex-shrink mx-3 text-[10px] font-mono uppercase tracking-wider text-[#8A8279]">
+            <div className="flex-grow border-t border-[#242838]" />
+            <span className="flex-shrink mx-3 text-[10px] font-mono uppercase tracking-wider text-[#767c92]">
               OR WORK EMAIL
             </span>
-            <div className="flex-grow border-t border-[#E7DFD5]" />
+            <div className="flex-grow border-t border-[#242838]" />
           </div>
 
           {/* Email form */}
           <form onSubmit={handleEmailLogin} className="space-y-3">
             <div className="relative">
-              <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-[#8A8279]" />
+              <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-[#767c92]" />
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@company.com"
-                className="w-full saas-input rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-[#1C1916] placeholder:text-[#8A8279]"
+                className="w-full saas-input rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-[#f4f1ea] placeholder:text-[#767c92]"
               />
             </div>
 
@@ -188,13 +188,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold"
             >
               <span>Continue with Email</span>
-              <ArrowRight className="h-3.5 w-3.5 text-[#6D665F]" />
+              <ArrowRight className="h-3.5 w-3.5 text-[#a3a8bb]" />
             </Button>
           </form>
         </div>
 
         {/* Fast Developer / Demo Access */}
-        <div className="pt-2 border-t border-[#E7DFD5] text-center">
+        <div className="pt-2 border-t border-[#242838] text-center">
           <button
             onClick={handleDemoLogin}
             disabled={loading}

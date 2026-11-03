@@ -4,10 +4,12 @@ Support desk endpoints handling tickets, knowledge base, analytics, and agent ru
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.graph import SupportAgentGraph
@@ -15,7 +17,7 @@ from app.api.v1.auth import require_admin, require_agent_or_admin, require_auth
 from app.core.config import Settings, get_settings
 from app.core.exceptions import ForbiddenError
 from app.core.security import SessionUser
-from app.db.session import get_db
+from app.db.session import async_session_factory, get_db
 from app.repositories.db_repository import KBRepository, TelemetryRepository, TicketRepository
 from app.schemas.support import (
     KBArticleCreate,
@@ -37,20 +39,8 @@ router = APIRouter(prefix="/api/support", tags=["support"])
 # ── 1. AGENT ORCHESTRATION PIPELINE ──────────────────────────────────────────
 
 
-@router.post("/run")
-async def run_support_agent(
-    req: SupportRunRequest,
-    user: SessionUser = Depends(require_auth),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-) -> dict[str, Any]:
-    llm_service = LLMService(settings)
-    retrieval_service = RetrievalService(settings)
-    search_service = SearchService(settings)
-    agent = SupportAgentGraph(llm_service, retrieval_service, search_service)
-
-    state = await agent.execute(req.text, req.provider, db)
-
+async def _persist_run(req: SupportRunRequest, user: SessionUser, db: AsyncSession, state: Any) -> dict[str, Any]:
+    """Persist telemetry + ticket for a finished agent run and build the wire response."""
     ticket_repo = TicketRepository(db)
     telemetry_repo = TelemetryRepository(db)
 
@@ -165,6 +155,72 @@ async def run_support_agent(
             ],
         },
     }
+
+
+@router.post("/run")
+async def run_support_agent(
+    req: SupportRunRequest,
+    user: SessionUser = Depends(require_auth),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> dict[str, Any]:
+    llm_service = LLMService(settings)
+    retrieval_service = RetrievalService(settings)
+    search_service = SearchService(settings)
+    agent = SupportAgentGraph(llm_service, retrieval_service, search_service)
+
+    state = await agent.execute(req.text, req.provider, db)
+    return await _persist_run(req, user, db, state)
+
+
+def get_session_factory():
+    """Dependency returning the async session factory (overridable in tests)."""
+    return async_session_factory
+
+
+def _sse(event: str, payload: dict[str, Any]) -> str:
+    return f"event: {event}\ndata: {json.dumps(payload, default=str)}\n\n"
+
+
+@router.post("/run/stream")
+async def run_support_agent_stream(
+    req: SupportRunRequest,
+    user: SessionUser = Depends(require_auth),
+    settings: Settings = Depends(get_settings),
+    session_factory=Depends(get_session_factory),
+) -> StreamingResponse:
+    """Same pipeline as /run, but streams one Server-Sent Event per LangGraph node as it finishes.
+
+    Events: `start`, `node` (one per finished node, with real duration + output summary),
+    then `done` (identical body to POST /run) or `error`.
+    """
+
+    async def gen():
+        # own session: the get_db dependency may be closed before a streamed body finishes
+        async with session_factory() as db:
+            try:
+                agent = SupportAgentGraph(LLMService(settings), RetrievalService(settings), SearchService(settings))
+                final_state = None
+                async for ev in agent.stream_execute(req.text, req.provider, db):
+                    if ev["type"] == "final":
+                        final_state = ev["state"]
+                        continue
+                    yield _sse(ev["type"], ev)
+                if final_state is None:
+                    raise RuntimeError("Agent graph finished without a final state")
+                result = await _persist_run(req, user, db, final_state)
+                await db.commit()
+                yield _sse("done", result)
+            except Exception as exc:  # noqa: BLE001 - surfaced to the client as an event
+                await db.rollback()
+                logger.exception("Streaming agent run failed")
+                yield _sse("error", {"message": str(exc) or exc.__class__.__name__})
+
+    return StreamingResponse(
+        gen(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no", "Connection": "keep-alive"},
+    )
 
 
 # ── 2. KNOWLEDGE BASE CRUD ──────────────────────────────────────────────────

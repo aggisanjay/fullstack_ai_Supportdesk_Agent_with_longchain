@@ -746,9 +746,8 @@ class SupportAgentGraph:
 
     # ── PUBLIC ENTRYPOINT ────────────────────────────────────────────────────
 
-    async def execute(self, text: str, provider: ProviderType, db: Any) -> AgentState:
-        """Executes the compiled LangGraph StateGraph pipeline and returns the result."""
-        initial_state: SupportGraphState = {
+    def _initial_state(self, text: str, provider: ProviderType, db: Any) -> SupportGraphState:
+        return {
             "ticket_text": text,
             "preferred_provider": provider,
             "db": db,
@@ -781,5 +780,82 @@ class SupportAgentGraph:
             "total_ms": 0.0,
         }
 
-        final_state = await self.compiled_graph.ainvoke(initial_state)
+    async def execute(self, text: str, provider: ProviderType, db: Any) -> AgentState:
+        """Executes the compiled LangGraph StateGraph pipeline and returns the result."""
+        final_state = await self.compiled_graph.ainvoke(self._initial_state(text, provider, db))
         return AgentState(final_state)
+
+    # Node that runs after each node (None = finished). The web-search branch is data dependent.
+    _NEXT_NODE: dict[str, str | None] = {
+        "ingest_and_classify": "retrieve_knowledge",
+        "ground_web_search": "synthesize_draft",
+        "synthesize_draft": "guardrails_and_accounting",
+        "guardrails_and_accounting": None,
+    }
+
+    def _node_event(self, node: str, merged: dict[str, Any]) -> dict[str, Any]:
+        """Summarise what a node actually produced, using only real values from the graph state."""
+        if node == "ingest_and_classify":
+            ms = merged.get("intent_ms", 0.0)
+            data = {
+                "intentCategory": merged.get("intent_category"),
+                "intentSummary": merged.get("intent_summary"),
+                "requiresWebSearch": merged.get("requires_web_search"),
+                "searchReasoning": merged.get("search_reasoning"),
+            }
+        elif node == "retrieve_knowledge":
+            ms = merged.get("kb_ms", 0.0)
+            kb = merged.get("kb_results", []) or []
+            data = {
+                "matchCount": len(kb),
+                "matches": [{"title": r.get("title", ""), "score": round(float(r.get("score", 0.0)), 3)} for r in kb[:5]],
+            }
+        elif node == "ground_web_search":
+            ms = merged.get("search_ms", 0.0)
+            results = merged.get("search_results", []) or []
+            data = {
+                "query": merged.get("search_query"),
+                "resultCount": len(results),
+                "results": [{"title": r.get("title", ""), "url": r.get("url", "")} for r in results[:5]],
+            }
+        elif node == "synthesize_draft":
+            ms = merged.get("model_ms", 0.0)
+            data = {
+                "provider": merged.get("actual_provider"),
+                "model": merged.get("actual_model"),
+                "sentiment": merged.get("sentiment"),
+                "llmConfidence": merged.get("llm_confidence"),
+                "replyChars": len(merged.get("reply", "") or ""),
+            }
+        else:  # guardrails_and_accounting
+            ms = None
+            tel = merged.get("telemetry", {}) or {}
+            data = {
+                "blendedConfidence": merged.get("blended_confidence"),
+                "confidenceBreakdown": merged.get("confidence_breakdown"),
+                "escalated": merged.get("escalation") is not None,
+                "totalTokens": tel.get("totalTokens"),
+                "formattedCost": tel.get("formattedCost"),
+            }
+        steps = merged.get("workflow_steps", []) or []
+        return {"node": node, "durationMs": ms, "data": data, "workflowOutput": steps[-1]["output"] if steps else ""}
+
+    async def stream_execute(self, text: str, provider: ProviderType, db: Any):
+        """Run the graph and yield one event per node as it really finishes.
+
+        Yields dicts: {"type": "start", "node": ...}, {"type": "node", ...}, and finally
+        {"type": "final", "state": AgentState}. Nothing here is simulated.
+        """
+        merged: dict[str, Any] = dict(self._initial_state(text, provider, db))
+        yield {"type": "start", "node": "ingest_and_classify"}
+        async for update in self.compiled_graph.astream(merged, stream_mode="updates"):
+            for node, partial in update.items():
+                merged.update(partial or {})
+                if node == "retrieve_knowledge":
+                    nxt = self._route_after_kb(merged)  # type: ignore[arg-type]
+                else:
+                    nxt = self._NEXT_NODE.get(node)
+                event = self._node_event(node, merged)
+                event.update({"type": "node", "next": nxt, "elapsedMs": round((time.perf_counter() - merged["start_time"]) * 1000, 1)})
+                yield event
+        yield {"type": "final", "state": AgentState(merged)}

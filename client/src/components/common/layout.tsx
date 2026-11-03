@@ -27,27 +27,27 @@ export default function CommonLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0] text-[#1C1916] font-sans relative flex flex-col selection:bg-[#FFF0E4] selection:text-[#1C1916]">
+    <div className="min-h-screen bg-[#07080d] text-[#f4f1ea] font-sans relative flex flex-col selection:bg-[#ff6b0a1a] selection:text-[#f4f1ea]">
       {/* Top Application Bar */}
-      <header className="sticky top-0 z-40 border-b border-[#E7DFD5] bg-[#FFFDFA]/95 backdrop-blur-md shrink-0">
+      <header className="sticky top-0 z-40 border-b border-[#242838] bg-[#0e1018]/95 backdrop-blur-md shrink-0">
         <div className="flex h-14 w-full items-center justify-between px-5 sm:px-6">
           
           {/* Brand Logo & Context Breadcrumb */}
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1C1916] text-[#FF6B0A] shadow-xs transition-transform group-hover:scale-105">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f4f1ea] text-[#FF6B0A] shadow-xs transition-transform group-hover:scale-105">
                 <Bot className="h-4.5 w-4.5" />
               </div>
-              <div className="text-sm font-bold tracking-tight text-[#1C1916] flex items-center">
+              <div className="text-sm font-bold tracking-tight text-[#f4f1ea] flex items-center">
                 <span>SupportDesk</span>
                 <span className="ml-1 text-[#FF6B0A]">AI</span>
               </div>
             </Link>
 
             {isDashboard && (
-              <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-[#E7DFD5] text-xs text-[#6D665F]">
-                <span className="text-[#8A8279] font-mono">/</span>
-                <span className="font-semibold text-[#1C1916]">Support Console</span>
+              <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-[#242838] text-xs text-[#a3a8bb]">
+                <span className="text-[#767c92] font-mono">/</span>
+                <span className="font-semibold text-[#f4f1ea]">Support Console</span>
               </div>
             )}
           </div>
@@ -57,17 +57,17 @@ export default function CommonLayout() {
             {isDashboard ? (
               <div className="flex items-center gap-3">
                 {/* Active AI Agent Indicator */}
-                <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-[#E6F4EA] border border-[#A7F3D0] px-2.5 py-1 text-[11px] font-semibold text-[#26764F] font-mono">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#26764F] animate-pulse" />
+                <div className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-[#5be3a81a] border border-[#5be3a840] px-2.5 py-1 text-[11px] font-semibold text-[#5be3a8] font-mono">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#5be3a8] animate-pulse" />
                   <span>Agent Copilot Active</span>
                 </div>
 
                 {/* User Initials & Name */}
-                <div className="flex items-center gap-2 text-xs text-[#1C1916]">
-                  <div className="h-7 w-7 rounded-lg bg-[#FFF0E4] border border-[#FFD8BF] text-[#E85B00] flex items-center justify-center font-bold text-xs">
+                <div className="flex items-center gap-2 text-xs text-[#f4f1ea]">
+                  <div className="h-7 w-7 rounded-lg bg-[#ff6b0a1a] border border-[#ff6b0a4d] text-[#E85B00] flex items-center justify-center font-bold text-xs">
                     {user?.name?.slice(0, 2).toUpperCase() || "SU"}
                   </div>
-                  <span className="hidden md:inline font-medium text-[#1C1916]">
+                  <span className="hidden md:inline font-medium text-[#f4f1ea]">
                     {user?.name || user?.email || "Support Operator"}
                   </span>
                 </div>
@@ -85,18 +85,18 @@ export default function CommonLayout() {
               </div>
             ) : (
               <div className="flex items-center gap-4">
-                <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-[#6D665F]">
-                  <a href="/#features" className="hover:text-[#1C1916] transition-colors">Features</a>
-                  <a href="/#how-it-works" className="hover:text-[#1C1916] transition-colors">How it works</a>
-                  <a href="/#demo" className="hover:text-[#1C1916] transition-colors">Demo</a>
-                  <a href="/#security" className="hover:text-[#1C1916] transition-colors">Security</a>
-                  <a href="/#faq" className="hover:text-[#1C1916] transition-colors">FAQ</a>
+                <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-[#a3a8bb]">
+                  <a href="/#features" className="hover:text-[#f4f1ea] transition-colors">Features</a>
+                  <a href="/#how-it-works" className="hover:text-[#f4f1ea] transition-colors">How it works</a>
+                  <a href="/#demo" className="hover:text-[#f4f1ea] transition-colors">Demo</a>
+                  <a href="/#security" className="hover:text-[#f4f1ea] transition-colors">Security</a>
+                  <a href="/#faq" className="hover:text-[#f4f1ea] transition-colors">FAQ</a>
                 </nav>
 
                 {!loading && user ? (
                   <Link
                     to="/support"
-                    className="bg-[#FF6B0A] hover:bg-[#E85B00] text-[#1C1916] text-xs font-bold px-4 py-1.5 rounded-full shadow-xs transition-all"
+                    className="bg-[#FF6B0A] hover:bg-[#E85B00] text-[#05060a] text-xs font-bold px-4 py-1.5 rounded-full shadow-xs transition-all"
                   >
                     Dashboard
                   </Link>
@@ -104,7 +104,7 @@ export default function CommonLayout() {
                   <Button
                     onClick={handleLogin}
                     size="sm"
-                    className="bg-[#FF6B0A] hover:bg-[#E85B00] text-[#1C1916] text-xs font-bold px-4 py-1.5 rounded-full shadow-xs"
+                    className="bg-[#FF6B0A] hover:bg-[#E85B00] text-[#05060a] text-xs font-bold px-4 py-1.5 rounded-full shadow-xs"
                   >
                     Get started
                   </Button>

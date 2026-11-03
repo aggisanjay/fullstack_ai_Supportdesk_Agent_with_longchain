@@ -21,7 +21,7 @@ export default function Login() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F5F0] text-[#6D665F] flex items-center justify-center text-sm font-mono">
+      <div className="min-h-screen bg-[#07080d] text-[#a3a8bb] flex items-center justify-center text-sm font-mono">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-[#FF6B0A] animate-ping" />
           <span>Verifying session...</span>
@@ -33,14 +33,14 @@ export default function Login() {
   if (user) return null;
 
   return (
-    <div className="min-h-screen bg-[#F8F5F0] text-[#1C1916] font-sans relative flex flex-col justify-between selection:bg-[#FFF0E4] selection:text-[#1C1916]">
+    <div className="min-h-screen bg-[#07080d] text-[#f4f1ea] font-sans relative flex flex-col justify-between selection:bg-[#ff6b0a1a] selection:text-[#f4f1ea]">
       {/* Top logo navbar */}
-      <header className="relative z-10 mx-auto w-full max-w-6xl px-6 py-6 flex items-center justify-between border-b border-[#E7DFD5]">
+      <header className="relative z-10 mx-auto w-full max-w-6xl px-6 py-6 flex items-center justify-between border-b border-[#242838]">
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1C1916] text-[#FF6B0A] shadow-xs transition-transform group-hover:scale-105">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#f4f1ea] text-[#FF6B0A] shadow-xs transition-transform group-hover:scale-105">
             <Bot className="h-5 w-5" />
           </div>
-          <div className="text-base font-bold tracking-tight text-[#1C1916] flex items-center">
+          <div className="text-base font-bold tracking-tight text-[#f4f1ea] flex items-center">
             <span>SupportDesk</span>
             <span className="ml-1 text-[#FF6B0A]">AI</span>
           </div>
@@ -48,7 +48,7 @@ export default function Login() {
 
         <Link
           to="/"
-          className="text-xs font-medium text-[#6D665F] hover:text-[#1C1916] transition"
+          className="text-xs font-medium text-[#a3a8bb] hover:text-[#f4f1ea] transition"
         >
           ← Back to Homepage
         </Link>
@@ -60,39 +60,39 @@ export default function Login() {
           
           {/* Left Column: Branding & Features */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD8BF] bg-[#FFF0E4] px-3.5 py-1 text-xs font-semibold text-[#E85B00]">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#26764F]" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#ff6b0a4d] bg-[#ff6b0a1a] px-3.5 py-1 text-xs font-semibold text-[#E85B00]">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#5be3a8]" />
               AI-Powered Customer Support
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#1C1916] leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-[#f4f1ea] leading-tight">
               Triage tickets with clarity.
               <span className="block text-[#FF6B0A] mt-1">
                 Draft grounded replies in seconds.
               </span>
             </h1>
 
-            <p className="text-[#6D665F] text-sm sm:text-base max-w-lg leading-relaxed">
+            <p className="text-[#a3a8bb] text-sm sm:text-base max-w-lg leading-relaxed">
               Log into your SupportDesk workspace to review incoming tickets, verify grounded citations, and collaborate with your automated support copilot.
             </p>
 
             <div className="grid gap-4 sm:grid-cols-2 pt-2">
-              <div className="rounded-2xl border border-[#E7DFD5] bg-[#FFFDFA] p-5 shadow-xs space-y-1.5">
-                <div className="text-sm font-semibold text-[#1C1916] flex items-center gap-2">
+              <div className="rounded-2xl border border-[#242838] bg-[#0e1018] p-5 shadow-xs space-y-1.5">
+                <div className="text-sm font-semibold text-[#f4f1ea] flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-[#FF6B0A]" />
                   <span>Structured Triage</span>
                 </div>
-                <div className="text-xs text-[#6D665F] leading-relaxed">
+                <div className="text-xs text-[#a3a8bb] leading-relaxed">
                   Accurate issue classification, sentiment signals, and action plans.
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-[#E7DFD5] bg-[#FFFDFA] p-5 shadow-xs space-y-1.5">
-                <div className="text-sm font-semibold text-[#1C1916] flex items-center gap-2">
+              <div className="rounded-2xl border border-[#242838] bg-[#0e1018] p-5 shadow-xs space-y-1.5">
+                <div className="text-sm font-semibold text-[#f4f1ea] flex items-center gap-2">
                   <Shield className="h-4 w-4 text-[#FF6B0A]" />
                   <span>Verified Grounding</span>
                 </div>
-                <div className="text-xs text-[#6D665F] leading-relaxed">
+                <div className="text-xs text-[#a3a8bb] leading-relaxed">
                   Real source attribution with transparent confidence breakdown.
                 </div>
               </div>
@@ -101,12 +101,12 @@ export default function Login() {
 
           {/* Right Column: Sign In Card */}
           <div className="lg:col-span-5 lg:justify-self-end w-full max-w-md">
-            <div className="w-full rounded-2xl border border-[#E7DFD5] bg-[#FFFDFA] p-8 shadow-xl space-y-6">
+            <div className="w-full rounded-2xl border border-[#242838] bg-[#0e1018] p-8 shadow-xl space-y-6">
               <div>
-                <h2 className="text-2xl font-bold tracking-tight text-[#1C1916]">
+                <h2 className="text-2xl font-bold tracking-tight text-[#f4f1ea]">
                   Sign in
                 </h2>
-                <p className="text-xs text-[#6D665F] mt-1">
+                <p className="text-xs text-[#a3a8bb] mt-1">
                   Access your ticket queues, knowledge base, and analytics workspace.
                 </p>
               </div>
@@ -114,7 +114,7 @@ export default function Login() {
               <div className="space-y-4 pt-2">
                 <Button
                   data-testid="login-btn"
-                  className="w-full bg-[#FF6B0A] hover:bg-[#E85B00] text-[#1C1916] font-bold py-3 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-[#FF6B0A] hover:bg-[#E85B00] text-[#05060a] font-bold py-3 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
                   onClick={onLogin}
                 >
                   <span>Continue with Scalekit SSO</span>
@@ -122,7 +122,7 @@ export default function Login() {
                 </Button>
               </div>
 
-              <div className="pt-2 text-center text-[11px] text-[#8A8279]">
+              <div className="pt-2 text-center text-[11px] text-[#767c92]">
                 Protected by verified enterprise authentication.
               </div>
             </div>
@@ -132,7 +132,7 @@ export default function Login() {
       </div>
 
       {/* Bottom Footer bar */}
-      <footer className="relative z-10 mx-auto w-full max-w-6xl px-6 py-6 text-center text-xs text-[#8A8279] border-t border-[#E7DFD5]">
+      <footer className="relative z-10 mx-auto w-full max-w-6xl px-6 py-6 text-center text-xs text-[#767c92] border-t border-[#242838]">
         © 2026 SupportDesk AI. All rights reserved.
       </footer>
     </div>

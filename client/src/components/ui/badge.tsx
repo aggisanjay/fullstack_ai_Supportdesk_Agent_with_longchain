@@ -7,17 +7,17 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 
 export function Badge({ className, variant = "default", children, ...props }: BadgeProps) {
   const variantStyles = {
-    default: "bg-[#F0EBE3] text-[#1C1916] border-[#E7DFD5]",
-    open: "bg-[#EBF3FE] text-[#1D4ED8] border-[#BFDBFE]",
-    pending: "bg-[#FEF3C7] text-[#A66314] border-[#FDE68A]",
-    resolved: "bg-[#E6F4EA] text-[#26764F] border-[#A7F3D0]",
-    escalated: "bg-[#FEE2E2] text-[#B83C35] border-[#FECACA]",
-    positive: "bg-[#E6F4EA] text-[#26764F] border-[#A7F3D0]",
-    neutral: "bg-[#F0EBE3] text-[#6D665F] border-[#E7DFD5]",
-    frustrated: "bg-[#FEF3C7] text-[#A66314] border-[#FDE68A]",
-    critical: "bg-[#FEE2E2] text-[#B83C35] border-[#FECACA]",
-    category: "bg-[#FFF0E4] text-[#E85B00] border-[#FFD8BF]",
-    accent: "bg-[#FF6B0A] text-[#1C1916] font-semibold border-transparent",
+    default: "bg-[#151826] text-[#f4f1ea] border-[#242838]",
+    open: "bg-[#5ad1ff1a] text-[#5ad1ff] border-[#5ad1ff40]",
+    pending: "bg-[#ffb0661f] text-[#ffb066] border-[#ffb06640]",
+    resolved: "bg-[#5be3a81a] text-[#5be3a8] border-[#5be3a840]",
+    escalated: "bg-[#ff4d3d1f] text-[#ff8a7e] border-[#ff4d3d40]",
+    positive: "bg-[#5be3a81a] text-[#5be3a8] border-[#5be3a840]",
+    neutral: "bg-[#151826] text-[#a3a8bb] border-[#242838]",
+    frustrated: "bg-[#ffb0661f] text-[#ffb066] border-[#ffb06640]",
+    critical: "bg-[#ff4d3d1f] text-[#ff8a7e] border-[#ff4d3d40]",
+    category: "bg-[#ff6b0a1a] text-[#E85B00] border-[#ff6b0a4d]",
+    accent: "bg-[#FF6B0A] text-[#05060a] font-semibold border-transparent",
   };
 
   return (

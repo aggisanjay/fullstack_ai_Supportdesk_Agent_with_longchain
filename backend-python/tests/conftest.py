@@ -54,6 +54,9 @@ async def app_with_test_db():
 
     app = create_app()
     app.dependency_overrides[get_db] = override_get_db
+    from app.api.v1.support import get_session_factory
+
+    app.dependency_overrides[get_session_factory] = lambda: session_factory
 
     yield app
 
