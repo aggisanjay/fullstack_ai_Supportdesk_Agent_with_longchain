@@ -808,7 +808,9 @@ class SupportAgentGraph:
             kb = merged.get("kb_results", []) or []
             data = {
                 "matchCount": len(kb),
-                "matches": [{"title": r.get("title", ""), "score": round(float(r.get("score", 0.0)), 3)} for r in kb[:5]],
+                "matches": [
+                    {"title": r.get("title", ""), "score": round(float(r.get("score", 0.0)), 3)} for r in kb[:5]
+                ],
             }
         elif node == "ground_web_search":
             ms = merged.get("search_ms", 0.0)
@@ -856,6 +858,12 @@ class SupportAgentGraph:
                 else:
                     nxt = self._NEXT_NODE.get(node)
                 event = self._node_event(node, merged)
-                event.update({"type": "node", "next": nxt, "elapsedMs": round((time.perf_counter() - merged["start_time"]) * 1000, 1)})
+                event.update(
+                    {
+                        "type": "node",
+                        "next": nxt,
+                        "elapsedMs": round((time.perf_counter() - merged["start_time"]) * 1000, 1),
+                    }
+                )
                 yield event
         yield {"type": "final", "state": AgentState(merged)}
