@@ -53,8 +53,6 @@ client/dist-ssr/
 client/.vite/
 
 # Environment Variables & Secrets (NEVER COMMIT CREDENTIALS)
-.env
-.env.*
 !.env.example
 backend-python/.env
 client/.env.local
@@ -75,7 +73,6 @@ temp_interactive_push.bat
 *.tmp
 
 # IDE & Editor Settings
-.vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 .idea/
@@ -92,3 +89,4 @@ temp_interactive_push.bat
 .Trashes
 ehthumbs.db
 Thumbs.db
+config.bat

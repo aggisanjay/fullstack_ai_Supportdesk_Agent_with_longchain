@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { TicketSculpture } from "./sculpture";
+import { TicketJourney } from "./journey";
 
 export type SceneApi = { setProgress: (p: number) => void };
 
@@ -11,7 +11,7 @@ export default function Landing3D({ onReady }: { onReady: (api: SceneApi | null)
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    let scene: TicketSculpture | null = null;
+    let scene: TicketJourney | null = null;
     let cancelled = false;
     let io: IntersectionObserver | null = null;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -21,7 +21,7 @@ export default function Landing3D({ onReady }: { onReady: (api: SceneApi | null)
     Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]).then(() => {
       if (cancelled) return;
       try {
-        scene = new TicketSculpture({ canvas, reduceMotion, lowEnd });
+        scene = new TicketJourney({ canvas, reduceMotion, lowEnd });
         const onResize = () => scene?.resize();
         window.addEventListener("resize", onResize);
         (canvas as unknown as { __off?: () => void }).__off = () => window.removeEventListener("resize", onResize);

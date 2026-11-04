@@ -28,14 +28,12 @@ export default function LandingPage() {
   const lenis = useRef<Lenis | null>(null);
 
   const primary = () => (user ? navigate("/support") : setAuthOpen(true));
-  const scrollToY = (y: number) =>
-    lenis.current ? lenis.current.scrollTo(y, { duration: 1.6 }) : window.scrollTo({ top: y, behavior: "smooth" });
+  const scrollToY = (y: number) => (lenis.current ? lenis.current.scrollTo(y, { duration: 1.6 }) : window.scrollTo({ top: y, behavior: "smooth" }));
   const go = (id: string) => {
     const el = document.getElementById(id);
     if (el) scrollToY(el.getBoundingClientRect().top + window.scrollY - 24);
   };
-  const seeHow = (el: HTMLElement) =>
-    scrollToY(el.getBoundingClientRect().top + window.scrollY + (el.offsetHeight - window.innerHeight) * 0.26);
+  const seeHow = (el: HTMLElement) => scrollToY(el.getBoundingClientRect().top + window.scrollY + (el.offsetHeight - window.innerHeight) * 0.26);
 
   useEffect(() => {
     document.documentElement.classList.add("sd-on");
@@ -64,18 +62,14 @@ export default function LandingPage() {
   return (
     <div className="sd">
       <nav className={`sd-nav ${scrolled ? "is-scrolled" : ""}`} aria-label="Primary">
-        <button className="sd-brand" onClick={() => scrollToY(0)}>
-          <Mark /> SupportDesk<span>AI</span>
-        </button>
+        <button className="sd-brand" onClick={() => scrollToY(0)}><Mark /> SupportDesk<span>AI</span></button>
         <div className="sd-links">
           <button onClick={() => go("method")}>How it works</button>
           <button onClick={() => go("product")}>Product</button>
           <button onClick={() => go("stack")}>Stack</button>
           <button onClick={() => go("faq")}>FAQ</button>
         </div>
-        <button className="sd-btn sd-btn-primary sd-btn-sm" onClick={primary}>
-          {user ? "Open console" : "Sign in"} <ArrowUpRight size={14} />
-        </button>
+        <button className="sd-btn sd-btn-primary sd-btn-sm" onClick={primary}>{user ? "Open console" : "Sign in"} <ArrowUpRight size={14} /></button>
       </nav>
 
       <main>
@@ -88,15 +82,12 @@ export default function LandingPage() {
       </main>
 
       <footer className="sd-foot">
-        <span>&copy; {YEAR} SupportDesk AI</span>
+        <span>© {YEAR} SupportDesk AI</span>
         <div>
-          <a href="https://github.com/aggisanjay/fullstack_ai_Supportdesk_Agent_with_longchain" target="_blank" rel="noreferrer">
-            GitHub
-          </a>
+          <a href="https://github.com/aggisanjay/fullstack_ai_Supportdesk_Agent_with_longchain" target="_blank" rel="noreferrer">GitHub</a>
           <button onClick={primary}>{user ? "Console" : "Sign in"}</button>
         </div>
       </footer>
-
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   );
