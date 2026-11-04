@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import Landing3D, { type SceneApi } from "../landing3d/Landing3D";
-import HeroAgentScene from "./HeroAgentScene";
 
 const CHAPTERS = [
   {
@@ -90,33 +89,23 @@ export default function StageSection({ signedIn, onPrimary, onSeeHow }: Props) {
   }, [reduce]);
 
   const heroBlock = (
-    <div className="sd-hero-grid">
-      <div className="sd-hero-left">
-        <p className="sd-kicker">Multi-agent support desk</p>
-        <h1 className="sd-display">
-          Every answer<br />has a <em>runbook</em><br />behind it.
-        </h1>
-        <p className="sd-lede">
-          SupportDesk AI reads each ticket, finds the runbooks and sources that apply, drafts a Tier-2 reply, and escalates to a person when confidence drops below 70%.
-        </p>
-        <div className="sd-actions">
-          <button className="sd-btn sd-btn-primary" onClick={onPrimary}>
-            {signedIn ? "Open the console" : "Get started"} <ArrowUpRight size={16} />
-          </button>
-          <button className="sd-btn sd-btn-ghost" onClick={() => section.current && onSeeHow(section.current)}>
-            See how it works <ArrowDown size={15} />
-          </button>
-        </div>
-        <div className="sd-hero-proof">
-          <div><b>&lt; 1.8s</b><span>response latency</span></div>
-          <div><b>1,536</b><span>pgvector dims</span></div>
-          <div><b>3 LLMs</b><span>failover chain</span></div>
-        </div>
+    <>
+      <p className="sd-kicker">Multi-agent support desk</p>
+      <h1 className="sd-display">
+        Every answer<br />has a <em>runbook</em><br />behind it.
+      </h1>
+      <p className="sd-lede">
+        SupportDesk AI reads each ticket, finds the runbooks and sources that apply, drafts a Tier-2 reply, and escalates to a person when confidence drops below 70%.
+      </p>
+      <div className="sd-actions">
+        <button className="sd-btn sd-btn-primary" onClick={onPrimary}>
+          {signedIn ? "Open the console" : "Get started"} <ArrowUpRight size={16} />
+        </button>
+        <button className="sd-btn sd-btn-ghost" onClick={() => section.current && onSeeHow(section.current)}>
+          See how it works <ArrowDown size={15} />
+        </button>
       </div>
-      <div className="sd-hero-right">
-        <HeroAgentScene />
-      </div>
-    </div>
+    </>
   );
 
   return (
